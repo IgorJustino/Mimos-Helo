@@ -45,7 +45,7 @@ const PARTY_CUSTOMIZATION_FIELDS = [
   }
 ];
 
-const products = [
+let products = [
   {
     id: "reforma-luxo",
     category: "cadernetas",
@@ -389,13 +389,24 @@ function getUnitPrice(product, option) {
 }
 
 function renderProducts() {
+  if (!products.length) {
+    productGrid.innerHTML = `
+      <div class="catalog-empty-state">
+        <span aria-hidden="true">♡</span>
+        <h3>Novidades chegando</h3>
+        <p>O catálogo está sendo atualizado. Fale conosco pelo WhatsApp para consultar os produtos disponíveis.</p>
+      </div>
+    `;
+    return;
+  }
+
   productGrid.innerHTML = products
     .map((product) => {
       const hidden = selectedFilter !== "todos" && product.category !== selectedFilter;
       return `
         <article class="product-card" data-product="${product.id}" data-category="${product.category}" ${hidden ? "hidden" : ""}>
           <div class="product-media">
-            <img src="${product.image}" alt="${escapeHtml(product.alt)}" loading="lazy" />
+            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" loading="lazy" />
             <span class="product-badge">${escapeHtml(product.badge)}</span>
           </div>
           <div class="product-body">
@@ -651,7 +662,7 @@ function renderCart() {
       total += unitPrice * item.quantity;
       return `
         <article class="cart-item">
-          <img src="${product.image}" alt="" />
+          <img src="${escapeHtml(product.image)}" alt="" />
           <div>
             <h3>${escapeHtml(product.shortName || product.name)}</h3>
             <div class="cart-item-customization">
@@ -704,7 +715,7 @@ function openProductDialog(productId) {
   productDialogContent.innerHTML = `
     <div class="product-dialog-layout">
       <div class="product-dialog-media">
-        <img src="${product.image}" alt="${escapeHtml(product.alt)}" />
+        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" />
       </div>
       <div class="product-dialog-copy">
         <span class="eyebrow">${escapeHtml(product.meta)}</span>
@@ -712,7 +723,7 @@ function openProductDialog(productId) {
         <span class="dialog-price">${escapeHtml(product.priceLabel)} <small>${escapeHtml(product.priceNote)}</small></span>
         <p>${escapeHtml(product.description)}</p>
         <ul class="detail-list">
-          ${product.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
+          ${(product.details || []).map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
         </ul>
         <p class="dialog-note">${escapeHtml(product.note)}</p>
         <button class="button button-primary" type="button" data-dialog-add="${product.id}">Personalizar produto</button>
@@ -772,6 +783,22 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("is-visible");
   toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2600);
+}
+
+async function loadRemoteCatalog() {
+  if (!window.MimosCatalog) return;
+
+  try {
+    const result = await window.MimosCatalog.listPublishedProducts();
+    if (!result.configured) return;
+    products = result.products;
+    cart = cart.filter((item) => getProduct(item.productId));
+    saveCart();
+    renderProducts();
+    renderCart();
+  } catch (error) {
+    console.warn("O catálogo online não pôde ser atualizado. Exibindo a versão local.", error);
+  }
 }
 
 function initFeatureCarousel() {
@@ -1023,3 +1050,4 @@ document.querySelector("#current-year").textContent = new Date().getFullYear();
 renderProducts();
 renderCart();
 initFeatureCarousel();
+loadRemoteCatalog();

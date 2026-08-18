@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#fff7fa" />
+    <title>Ateliê do catálogo — Mimos Helo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Borel&family=Caprasimo&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="admin.css" />
+  </head>
+  <body class="admin-page">
+    <a class="skip-link" href="#admin-main">Ir para o conteúdo</a>
+
+    <header class="admin-topbar">
+      <a class="brand" href="/" aria-label="Abrir catálogo da Mimos Helo">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 40 40"><path d="M20 34S5 26 5 15.4C5 7.9 15 5.8 20 13c5-7.2 15-5.1 15 2.4C35 26 20 34 20 34Z" /></svg>
+        </span>
+        <span class="brand-copy"><strong>Mimos Helo</strong><small>ateliê do catálogo</small></span>
+      </a>
+
+      <div class="admin-account" data-admin-account hidden>
+        <span data-admin-email></span>
+        <a class="admin-link-button" href="/" target="_blank" rel="noreferrer">Ver catálogo</a>
+        <button class="admin-link-button" type="button" data-admin-signout>Sair</button>
+      </div>
+    </header>
+
+    <main id="admin-main">
+      <section class="admin-gate" data-admin-loading>
+        <div class="admin-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p>Preparando seu catálogo…</p>
+      </section>
+
+      <section class="admin-gate" data-admin-setup hidden>
+        <article class="gate-card setup-card">
+          <span class="gate-kicker">Configuração necessária</span>
+          <h1>Conecte o ateliê ao catálogo</h1>
+          <p>O painel está pronto, mas ainda precisa das credenciais públicas do Supabase configuradas na Vercel.</p>
+          <ol class="setup-steps">
+            <li>Crie o projeto no Supabase.</li>
+            <li>Execute o arquivo <code>supabase/setup.sql</code> no SQL Editor.</li>
+            <li>Crie a usuária administradora e autorize o e-mail.</li>
+            <li>Adicione <code>SUPABASE_URL</code> e <code>SUPABASE_PUBLISHABLE_KEY</code> na Vercel.</li>
+          </ol>
+          <p class="gate-note">Nunca coloque a Secret Key ou Service Role no navegador.</p>
+          <a class="button button-primary" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Abrir Supabase</a>
+        </article>
+      </section>
+
+      <section class="admin-gate" data-admin-login hidden>
+        <article class="gate-card login-card">
+          <div class="login-mark" aria-hidden="true">MH</div>
+          <span class="gate-kicker">Acesso da proprietária</span>
+          <h1>Entre no seu ateliê</h1>
+          <p>Use o e-mail e a senha cadastrados para cuidar dos produtos.</p>
+          <form class="login-form" data-login-form>
+            <label>
+              <span>E-mail</span>
+              <input type="email" name="email" autocomplete="username" required placeholder="seuemail@exemplo.com" />
+            </label>
+            <label>
+              <span>Senha</span>
+              <input type="password" name="password" autocomplete="current-password" required minlength="8" placeholder="Sua senha" />
+            </label>
+            <p class="form-message" data-login-message role="alert"></p>
+            <button class="button button-primary button-full" type="submit" data-login-submit>Entrar no catálogo</button>
+          </form>
+          <a class="back-to-catalog" href="/">← Voltar ao catálogo</a>
+        </article>
+      </section>
+
+      <section class="admin-gate" data-admin-denied hidden>
+        <article class="gate-card">
+          <span class="gate-kicker">Acesso não autorizado</span>
+          <h1>Este usuário não administra o catálogo</h1>
+          <p>O login existe, mas o e-mail ainda não foi incluído na lista de administradores.</p>
+          <button class="button button-primary" type="button" data-admin-signout>Sair e tentar outro e-mail</button>
+        </article>
+      </section>
+
+      <section class="admin-workspace" data-admin-workspace hidden>
+        <aside class="product-rail">
+          <div class="rail-heading">
+            <div>
+              <span class="gate-kicker">Seus produtos</span>
+              <h1>Catálogo</h1>
+            </div>
+            <span class="product-total" data-product-total>0</span>
+          </div>
+
+          <button class="button button-primary button-full" type="button" data-new-product>+ Cadastrar produto</button>
+
+          <label class="admin-search">
+            <span class="sr-only">Buscar produto</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+            <input type="search" placeholder="Buscar pelo nome…" data-product-search />
+          </label>
+
+          <div class="rail-summary" aria-label="Resumo do catálogo">
+            <span><strong data-published-total>0</strong> publicados</span>
+            <span><strong data-draft-total>0</strong> ocultos</span>
+          </div>
+
+          <div class="admin-product-list" data-admin-product-list></div>
+        </aside>
+
+        <section class="product-editor" aria-live="polite">
+          <div class="editor-empty" data-editor-empty>
+            <span aria-hidden="true">✿</span>
+            <h2>Escolha um produto</h2>
+            <p>Selecione um item ao lado ou cadastre um produto novo.</p>
+            <button class="button button-primary" type="button" data-new-product>Cadastrar primeiro produto</button>
+          </div>
+
+          <form class="product-form" data-product-form hidden>
+            <input type="hidden" name="id" />
+            <input type="hidden" name="imagePath" />
+
+            <header class="editor-header">
+              <div>
+                <span class="gate-kicker" data-editor-kicker>Novo produto</span>
+                <h2 data-editor-title>Cadastre um produto</h2>
+              </div>
+              <div class="editor-actions">
+                <button class="admin-link-button danger-link" type="button" data-delete-product hidden>Excluir</button>
+                <button class="button button-primary" type="submit" data-save-product>Salvar produto</button>
+              </div>
+            </header>
+
+            <div class="editor-scroll">
+              <section class="form-sheet form-sheet-main">
+                <div class="sheet-heading">
+                  <span>Informações principais</span>
+                  <p>O que o cliente verá no cartão do produto.</p>
+                </div>
+
+                <div class="admin-form-grid">
+                  <label class="admin-field field-span-2">
+                    <span>Nome do produto *</span>
+                    <input name="name" required maxlength="100" placeholder="Ex.: Caderneta personalizada" />
+                  </label>
+                  <label class="admin-field">
+                    <span>Nome curto</span>
+                    <input name="shortName" maxlength="50" placeholder="Ex.: Caderneta" />
+                  </label>
+                  <label class="admin-field">
+                    <span>Categoria *</span>
+                    <select name="category" required>
+                      <option value="cadernetas">Cadernetas</option>
+                      <option value="identificacao">Identificação</option>
+                      <option value="festas">Festas</option>
+                      <option value="acabamentos">Acabamentos</option>
+                      <option value="outros">Outros</option>
+                    </select>
+                  </label>
+                  <label class="admin-field">
+                    <span>Preço inicial *</span>
+                    <span class="money-input"><small>R$</small><input name="price" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0,00" /></span>
+                  </label>
+                  <label class="admin-field">
+                    <span>Observação do preço</span>
+                    <input name="priceNote" maxlength="50" placeholder="Ex.: a partir de / no Pix" />
+                  </label>
+                  <label class="admin-field">
+                    <span>Etiqueta</span>
+                    <input name="badge" maxlength="40" placeholder="Ex.: Mais escolhido" />
+                  </label>
+                  <label class="admin-field">
+                    <span>Tipo do produto</span>
+                    <input name="meta" maxlength="50" placeholder="Ex.: Papelaria para festas" />
+                  </label>
+                  <label class="admin-field field-span-2">
+                    <span>Descrição *</span>
+                    <textarea name="description" required maxlength="500" rows="4" placeholder="Explique de forma simples o que torna este produto especial."></textarea>
+                  </label>
+                  <label class="admin-field">
+                    <span>Ordem no catálogo</span>
+                    <input name="sortOrder" type="number" min="0" step="1" value="0" />
+                  </label>
+                  <label class="publish-switch">
+                    <input name="published" type="checkbox" checked />
+                    <span aria-hidden="true"></span>
+                    <strong>Produto publicado</strong>
+                    <small>Desative para ocultar sem excluir.</small>
+                  </label>
+                </div>
+              </section>
+
+              <section class="form-sheet image-sheet">
+                <div class="sheet-heading">
+                  <span>Foto do produto</span>
+                  <p>JPG, PNG ou WebP, com no máximo 5 MB.</p>
+                </div>
+                <div class="image-editor">
+                  <div class="image-preview" data-image-preview>
+                    <span aria-hidden="true">+</span>
+                    <p>A foto aparecerá aqui</p>
+                  </div>
+                  <div class="image-controls">
+                    <label class="upload-button">
+                      <input type="file" name="imageFile" accept="image/jpeg,image/png,image/webp" />
+                      Escolher uma foto
+                    </label>
+                    <input type="hidden" name="image" />
+                    <label class="admin-field">
+                      <span>Descrição da imagem</span>
+                      <input name="alt" maxlength="160" placeholder="Ex.: Caderneta rosa personalizada" />
+                    </label>
+                    <p>A nova foto será enviada quando você salvar o produto.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="form-sheet">
+                <div class="sheet-heading sheet-heading-action">
+                  <div>
+                    <span>Opções de escolha</span>
+                    <p>Modelos, tamanhos, acabamentos ou kits com preços diferentes.</p>
+                  </div>
+                  <button class="admin-link-button" type="button" data-add-option>+ Adicionar opção</button>
+                </div>
+                <label class="admin-field option-label-field">
+                  <span>Título das opções</span>
+                  <input name="optionLabel" maxlength="60" placeholder="Ex.: Tamanho, modelo ou acabamento" />
+                </label>
+                <div class="repeater-list" data-options-list></div>
+                <p class="repeater-empty" data-options-empty>Nenhuma opção cadastrada. O produto usará apenas o preço inicial.</p>
+              </section>
+
+              <section class="form-sheet">
+                <div class="sheet-heading sheet-heading-action">
+                  <div>
+                    <span>Campos de personalização</span>
+                    <p>Informações que o comprador deverá preencher antes de adicionar ao pedido.</p>
+                  </div>
+                  <button class="admin-link-button" type="button" data-add-field>+ Adicionar campo</button>
+                </div>
+                <div class="repeater-list" data-fields-list></div>
+                <p class="repeater-empty" data-fields-empty>Nenhum campo cadastrado. O produto será adicionado sem formulário adicional.</p>
+              </section>
+
+              <section class="form-sheet">
+                <div class="sheet-heading">
+                  <span>Detalhes do atendimento</span>
+                  <p>Orientações exibidas no produto e durante a personalização.</p>
+                </div>
+                <div class="admin-form-grid">
+                  <label class="admin-field field-span-2">
+                    <span>Aviso antes de adicionar</span>
+                    <textarea name="customizationNotice" rows="3" maxlength="500" placeholder="Ex.: Confirme a disponibilidade do tema antes do pedido."></textarea>
+                  </label>
+                  <label class="admin-field field-span-2">
+                    <span>Características <small>(uma por linha)</small></span>
+                    <textarea name="details" rows="6" placeholder="Material resistente&#10;Produção em até 5 dias úteis&#10;Personalização inclusa"></textarea>
+                  </label>
+                  <label class="admin-field field-span-2">
+                    <span>Observação final</span>
+                    <textarea name="note" rows="3" maxlength="500" placeholder="Ex.: O prazo depende da agenda de produção."></textarea>
+                  </label>
+                </div>
+              </section>
+            </div>
+
+            <footer class="editor-footer">
+              <span data-save-status>Revise os dados antes de publicar.</span>
+              <button class="button button-primary" type="submit" data-save-product>Salvar produto</button>
+            </footer>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <div class="admin-toast" data-admin-toast role="status" aria-live="polite"></div>
+
+    <script src="catalog-api.js"></script>
+    <script src="admin.js"></script>
+  </body>
+</html>

@@ -300,8 +300,37 @@ try {
   await delay(350);
   await screenshot("/tmp/mimoshelo-carrossel-mobile.png");
 
+  const dynamicCatalogState = await evaluate(`(() => {
+    const product = window.MimosCatalog.normalizeProduct({
+      id: 'produto-dinamico',
+      slug: 'produto-dinamico',
+      category: 'outros',
+      name: 'Produto vindo do painel',
+      price: 29.9,
+      image_url: 'assets/images/reforma-luxo.jpeg',
+      options: ['Modelo A'],
+      option_prices: [31.5],
+      option_descriptions: ['Modelo de teste'],
+      customization_fields: [{ id: 'nome', label: 'Nome', type: 'text', required: true }],
+      details: [],
+      published: true,
+      sort_order: 1
+    });
+    return {
+      name: product.name,
+      price: product.optionPrices[0],
+      fieldLabel: product.customizationFields[0].label
+    };
+  })()`);
+  assert(
+    dynamicCatalogState.name === "Produto vindo do painel" &&
+      dynamicCatalogState.price === 31.5 &&
+      dynamicCatalogState.fieldLabel === "Nome",
+    `Os dados dinâmicos do painel não foram convertidos corretamente: ${JSON.stringify(dynamicCatalogState)}`
+  );
+
   assert(browserErrors.length === 0, `Erros no navegador: ${browserErrors.join('; ')}`);
-  console.log("Smoke test aprovado: personalização, edição, produtos, carrossel, assets, filtro, orçamento e WhatsApp.");
+  console.log("Smoke test aprovado: catálogo dinâmico, personalização, edição, carrossel, assets, orçamento e WhatsApp.");
 } finally {
   socket.close();
   const browserExited = new Promise((resolve) => browser.once("exit", resolve));

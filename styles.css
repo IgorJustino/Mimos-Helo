@@ -119,6 +119,39 @@ h3 {
   padding: 104px 0;
 }
 
+.catalog-empty-state {
+  grid-column: 1 / -1;
+  min-height: 310px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 42px;
+  border: 1px dashed rgba(105, 64, 144, 0.28);
+  border-radius: var(--radius-lg);
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.58);
+  text-align: center;
+}
+
+.catalog-empty-state > span {
+  color: var(--pitaya);
+  font-family: "Caprasimo", Georgia, serif;
+  font-size: 3rem;
+}
+
+.catalog-empty-state h3 {
+  margin: 8px 0;
+  color: var(--ink);
+  font-family: "Caprasimo", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.catalog-empty-state p {
+  max-width: 520px;
+  margin: 0;
+}
+
 .notice-bar {
   min-height: 34px;
   display: grid;
