@@ -443,14 +443,24 @@ function getFieldAutocomplete(fieldId) {
   return values[fieldId] || "off";
 }
 
+function getCustomizationFieldType(field) {
+  const supportedTypes = new Set(["text", "textarea", "select", "number", "date", "tel"]);
+  const type = supportedTypes.has(field.type) ? field.type : "text";
+  const identifiesAName =
+    /name/i.test(String(field.id || "")) ||
+    /^nome\b/i.test(String(field.label || "").trim());
+  return identifiesAName ? "text" : type;
+}
+
 function renderCustomizationField(field, currentValue = "") {
+  const fieldType = getCustomizationFieldType(field);
   const requiredMark = field.required ? '<span aria-hidden="true">*</span>' : '<small>(opcional)</small>';
   const commonAttributes = `name="${escapeHtml(field.id)}" id="custom-${escapeHtml(field.id)}" ${field.required ? "required" : ""}`;
 
   let control;
-  if (field.type === "textarea") {
+  if (fieldType === "textarea") {
     control = `<textarea ${commonAttributes} rows="3" maxlength="400" placeholder="${escapeHtml(field.placeholder || "")}">${escapeHtml(currentValue)}</textarea>`;
-  } else if (field.type === "select") {
+  } else if (fieldType === "select") {
     control = `
       <select ${commonAttributes}>
         ${field.options
@@ -462,11 +472,11 @@ function renderCustomizationField(field, currentValue = "") {
     control = `
       <input
         ${commonAttributes}
-        type="${escapeHtml(field.type)}"
+        type="${escapeHtml(fieldType)}"
         value="${escapeHtml(currentValue)}"
         placeholder="${escapeHtml(field.placeholder || "")}"
         autocomplete="${getFieldAutocomplete(field.id)}"
-        ${field.type === "tel" ? 'inputmode="tel" maxlength="20"' : 'maxlength="140"'}
+        ${fieldType === "tel" ? 'inputmode="tel" maxlength="20"' : 'maxlength="140"'}
       />
     `;
   }

@@ -36,6 +36,9 @@
     previewUrl: "",
     toastTimer: null
   };
+  const MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
+  const MAX_UPLOADED_IMAGE_SIZE = 5 * 1024 * 1024;
+  const MAX_IMAGE_DIMENSION = 1800;
 
   function showView(name) {
     Object.entries(views).forEach(([viewName, element]) => {
@@ -120,6 +123,91 @@
       return;
     }
     imagePreview.innerHTML = `<img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" />`;
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Não foi possível otimizar esta imagem."))),
+        type,
+        quality
+      );
+    });
+  }
+
+  async function decodeProductImage(file) {
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+        return { source: bitmap, width: bitmap.width, height: bitmap.height, close: () => bitmap.close() };
+      } catch {
+        // Older browsers fall back to a regular image element below.
+      }
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.decoding = "async";
+    image.src = objectUrl;
+    try {
+      await image.decode();
+      return {
+        source: image,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        close: () => URL.revokeObjectURL(objectUrl)
+      };
+    } catch {
+      URL.revokeObjectURL(objectUrl);
+      throw new Error("Não foi possível abrir esta imagem.");
+    }
+  }
+
+  async function compressProductImage(file) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      throw new Error("Use uma imagem JPG, PNG ou WebP.");
+    }
+    if (file.size > MAX_SOURCE_IMAGE_SIZE) {
+      throw new Error("A imagem original deve ter no máximo 20 MB.");
+    }
+
+    const decoded = await decodeProductImage(file);
+    try {
+      const initialScale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(decoded.width, decoded.height));
+      let width = Math.max(1, Math.round(decoded.width * initialScale));
+      let height = Math.max(1, Math.round(decoded.height * initialScale));
+      let quality = 0.84;
+      let optimized;
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Seu navegador não conseguiu preparar a imagem.");
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        context.drawImage(decoded.source, 0, 0, width, height);
+        optimized = await canvasToBlob(canvas, "image/webp", quality);
+        if (optimized.size <= MAX_UPLOADED_IMAGE_SIZE) break;
+        width = Math.max(1, Math.round(width * 0.8));
+        height = Math.max(1, Math.round(height * 0.8));
+        quality = Math.max(0.62, quality - 0.08);
+      }
+
+      if (!optimized || optimized.size > MAX_UPLOADED_IMAGE_SIZE) {
+        throw new Error("Não foi possível reduzir a imagem para menos de 5 MB.");
+      }
+      if (file.size <= MAX_UPLOADED_IMAGE_SIZE && optimized.size >= file.size) return file;
+
+      const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-") || "produto";
+      return new File([optimized], `${baseName}.webp`, {
+        type: "image/webp",
+        lastModified: Date.now()
+      });
+    } finally {
+      decoded.close();
+    }
   }
 
   function updateRepeaterStates() {
@@ -355,11 +443,10 @@
       const imageFile = imageFileInput.files[0];
 
       if (imageFile) {
-        if (imageFile.size > 5 * 1024 * 1024) throw new Error("A imagem deve ter no máximo 5 MB.");
-        if (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
-          throw new Error("Use uma imagem JPG, PNG ou WebP.");
-        }
-        const uploaded = await catalog.uploadProductImage(imageFile);
+        saveStatus.textContent = "Otimizando a imagem…";
+        const optimizedImage = await compressProductImage(imageFile);
+        saveStatus.textContent = "Enviando a imagem otimizada…";
+        const uploaded = await catalog.uploadProductImage(optimizedImage);
         image = uploaded.publicUrl;
         imagePath = uploaded.path;
       }

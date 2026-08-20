@@ -142,6 +142,21 @@ try {
   assert(assetFailures.length === 0, `Assets indisponíveis: ${JSON.stringify(assetFailures)}`);
 
   await evaluate(`
+    products.find((product) => product.id === 'reforma-luxo').customizationFields[0].type = 'number';
+    document.querySelector('[data-customize-product="reforma-luxo"]').click();
+    document.querySelector('[name="coverName"]').value = 'Maria Helena';
+  `);
+  assert(
+    (await evaluate("document.querySelector('[name=\"coverName\"]').type")) === "text" &&
+      (await evaluate("document.querySelector('[name=\"coverName\"]').value")) === "Maria Helena",
+    "O campo de nome da capa não aceitou letras."
+  );
+  await evaluate(`
+    document.querySelector('#customization-dialog').close();
+    products.find((product) => product.id === 'reforma-luxo').customizationFields[0].type = 'text';
+  `);
+
+  await evaluate(`
     window.open = (url) => { window.__openedWhatsApp = url; };
     document.querySelector('[data-customize-product="cracha-inclusivo"]').click();
   `);

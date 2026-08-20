@@ -1,9 +1,11 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:4173";
 const debuggingPort = 9334;
 const profileDirectory = await mkdtemp("/tmp/mimoshelo-admin-chrome-");
+const sampleImagePath = new URL("../assets/images/reforma-luxo.jpeg", import.meta.url).pathname;
+const sampleImageSize = (await stat(sampleImagePath)).size;
 const browser = spawn(
   "/usr/bin/google-chrome",
   [
@@ -114,6 +116,11 @@ const cloudflareApiMock = `
         authenticated = false;
         return json({ signedOut: true });
       }
+      if (url.pathname === '/api/admin/images' && options.method === 'POST') {
+        const image = options.body.get('image');
+        window.__uploadedImage = { name: image.name, type: image.type, size: image.size };
+        return json({ path: 'catalogo/teste.webp', publicUrl: 'assets/images/reforma-luxo.jpeg' }, 201);
+      }
       if (url.pathname === '/api/admin/products' && (!options.method || options.method === 'GET')) {
         return json({ products });
       }
@@ -154,6 +161,14 @@ try {
   assert((await evaluate("document.querySelectorAll('.admin-product-card').length")) === 1, "A lista de produtos do painel não carregou.");
   assert((await evaluate("document.querySelector('[name=\"name\"]').value")) === "Produto de teste", "O editor não recebeu os dados do produto.");
 
+  await command("DOM.enable");
+  const { root } = await command("DOM.getDocument");
+  const { nodeId: imageInputNodeId } = await command("DOM.querySelector", {
+    nodeId: root.nodeId,
+    selector: '[name="imageFile"]'
+  });
+  await command("DOM.setFileInputFiles", { nodeId: imageInputNodeId, files: [sampleImagePath] });
+
   await evaluate(`
     document.querySelector('[name="name"]').value = 'Produto atualizado';
     document.querySelector('[name="name"]').dispatchEvent(new Event('input', { bubbles: true }));
@@ -163,9 +178,12 @@ try {
     newOption.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('[data-product-form]').requestSubmit();
   `);
-  await delay(400);
+  await delay(1400);
   assert((await evaluate("document.querySelector('[data-editor-title]').textContent")) === "Produto atualizado", "O produto editado não foi salvo.");
   assert((await evaluate("document.querySelectorAll('[data-option-name]').length")) === 2, "A nova opção não foi salva.");
+  const uploadedImage = await evaluate("window.__uploadedImage");
+  assert(uploadedImage?.size <= sampleImageSize, `A imagem otimizada ficou maior que a original: ${JSON.stringify(uploadedImage)}`);
+  assert(["image/webp", "image/jpeg"].includes(uploadedImage?.type), `O formato otimizado é inválido: ${JSON.stringify(uploadedImage)}`);
 
   await screenshot("/tmp/mimoshelo-admin-desktop.png");
 
