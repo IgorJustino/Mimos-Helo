@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mimos-helo",
+  "pages_build_output_dir": ".",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mimos-helo-catalogo",
+      "database_id": "6004f99a-6cd1-44d8-810d-5dcd6da5ef67",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "mimos-helo-imagens"
+    }
+  ]
+}

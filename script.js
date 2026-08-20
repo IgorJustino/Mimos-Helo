@@ -791,6 +791,7 @@ async function loadRemoteCatalog() {
   try {
     const result = await window.MimosCatalog.listPublishedProducts();
     if (!result.configured) return;
+    if (!result.products.length) return;
     products = result.products;
     cart = cart.filter((item) => getProduct(item.productId));
     saveCart();

@@ -1,110 +1,50 @@
 (function createCatalogApi(global) {
   "use strict";
 
-  const SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
-  const PRODUCT_COLUMNS = [
-    "id",
-    "slug",
-    "category",
-    "badge",
-    "meta",
-    "name",
-    "short_name",
-    "price",
-    "price_note",
-    "image_url",
-    "image_path",
-    "image_alt",
-    "description",
-    "option_label",
-    "options",
-    "option_prices",
-    "option_descriptions",
-    "customization_fields",
-    "customization_notice",
-    "details",
-    "note",
-    "published",
-    "sort_order",
-    "created_at",
-    "updated_at"
-  ].join(",");
-
-  let sdkPromise;
   let configPromise;
-  let clientPromise;
 
-  function hasLocalConfiguration(config) {
-    return Boolean(config?.supabaseUrl && config?.supabasePublishableKey);
+  function asArray(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  async function requestJson(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
+        ...(options.headers || {})
+      }
+    });
+
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      const error = new Error(payload?.error || "Não foi possível conectar ao catálogo.");
+      error.status = response.status;
+      throw error;
+    }
+
+    return payload;
   }
 
   async function loadConfiguration() {
     if (configPromise) return configPromise;
-
-    configPromise = (async () => {
-      const localConfig = global.MIMOS_HELO_CONFIG;
-      if (hasLocalConfiguration(localConfig)) {
-        return { ...localConfig, configured: true, source: "local" };
-      }
-
-      try {
-        const response = await fetch("/api/catalog-config", {
-          headers: { Accept: "application/json" },
-          cache: "no-store"
-        });
-        if (!response.ok) return { configured: false, source: "none" };
-        const remoteConfig = await response.json();
-        return {
-          ...remoteConfig,
-          configured: hasLocalConfiguration(remoteConfig),
-          source: "vercel"
-        };
-      } catch {
-        return { configured: false, source: "none" };
-      }
-    })();
-
+    configPromise = requestJson("/api/health", { cache: "no-store" })
+      .then((result) => ({
+        configured: Boolean(result?.configured),
+        database: result?.database || "cloudflare-d1",
+        storage: result?.storage || "cloudflare-r2",
+        source: "cloudflare"
+      }))
+      .catch(() => ({ configured: false, source: "none" }));
     return configPromise;
-  }
-
-  function loadSdk() {
-    if (global.supabase?.createClient) return Promise.resolve(global.supabase);
-    if (sdkPromise) return sdkPromise;
-
-    sdkPromise = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = SDK_URL;
-      script.async = true;
-      script.crossOrigin = "anonymous";
-      script.onload = () => resolve(global.supabase);
-      script.onerror = () => reject(new Error("Não foi possível carregar a conexão segura com o catálogo."));
-      document.head.append(script);
-    });
-
-    return sdkPromise;
-  }
-
-  async function getClient() {
-    if (clientPromise) return clientPromise;
-
-    clientPromise = (async () => {
-      const config = await loadConfiguration();
-      if (!config.configured) return null;
-      const sdk = await loadSdk();
-      return sdk.createClient(config.supabaseUrl, config.supabasePublishableKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      });
-    })();
-
-    return clientPromise;
-  }
-
-  function asArray(value) {
-    return Array.isArray(value) ? value : [];
   }
 
   function normalizeProduct(row) {
@@ -173,95 +113,56 @@
   }
 
   async function listPublishedProducts() {
-    const client = await getClient();
-    if (!client) return { configured: false, products: [] };
-    const { data, error } = await client
-      .from("products")
-      .select(PRODUCT_COLUMNS)
-      .eq("published", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    if (error) throw error;
-    return { configured: true, products: (data || []).map(normalizeProduct) };
+    const config = await loadConfiguration();
+    if (!config.configured) return { configured: false, products: [] };
+    const result = await requestJson("/api/products");
+    return { configured: true, products: (result?.products || []).map(normalizeProduct) };
   }
 
   async function listAllProducts() {
-    const client = await getClient();
-    if (!client) throw new Error("O catálogo ainda não foi conectado ao Supabase.");
-    const { data, error } = await client
-      .from("products")
-      .select(PRODUCT_COLUMNS)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    if (error) throw error;
-    return (data || []).map(normalizeProduct);
-  }
-
-  async function signIn(email, password) {
-    const client = await getClient();
-    if (!client) throw new Error("O catálogo ainda não foi conectado ao Supabase.");
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
-  }
-
-  async function signOut() {
-    const client = await getClient();
-    if (client) await client.auth.signOut();
+    const result = await requestJson("/api/admin/products", { cache: "no-store" });
+    return (result?.products || []).map(normalizeProduct);
   }
 
   async function getCurrentUser() {
-    const client = await getClient();
-    if (!client) return null;
-    const { data, error } = await client.auth.getUser();
-    if (error) return null;
-    return data.user;
+    try {
+      const result = await requestJson("/api/admin/me", { cache: "no-store" });
+      return result?.user || null;
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) return null;
+      throw error;
+    }
   }
 
   async function verifyAdmin(userId) {
-    const client = await getClient();
-    if (!client || !userId) return false;
-    const { data, error } = await client
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error) throw error;
-    return Boolean(data);
+    return Boolean(userId);
+  }
+
+  async function signIn() {
+    global.location.reload();
+    return { user: null };
+  }
+
+  async function signOut() {
+    global.location.assign("/cdn-cgi/access/logout");
   }
 
   async function saveProduct(product) {
-    const client = await getClient();
-    if (!client) throw new Error("O catálogo ainda não foi conectado ao Supabase.");
-    const { data, error } = await client
-      .from("products")
-      .upsert(serializeProduct(product))
-      .select(PRODUCT_COLUMNS)
-      .single();
-    if (error) throw error;
-    return normalizeProduct(data);
+    const result = await requestJson("/api/admin/products", {
+      method: "POST",
+      body: JSON.stringify(serializeProduct(product))
+    });
+    return normalizeProduct(result.product);
   }
 
   async function deleteProduct(productId) {
-    const client = await getClient();
-    if (!client) throw new Error("O catálogo ainda não foi conectado ao Supabase.");
-    const { error } = await client.from("products").delete().eq("id", productId);
-    if (error) throw error;
+    await requestJson(`/api/admin/products/${encodeURIComponent(productId)}`, { method: "DELETE" });
   }
 
   async function uploadProductImage(file) {
-    const client = await getClient();
-    if (!client) throw new Error("O catálogo ainda não foi conectado ao Supabase.");
-    const extension = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const path = `catalogo/${Date.now()}-${crypto.randomUUID()}.${extension || "jpg"}`;
-    const { error } = await client.storage.from("product-images").upload(path, file, {
-      cacheControl: "31536000",
-      contentType: file.type,
-      upsert: false
-    });
-    if (error) throw error;
-    const { data } = client.storage.from("product-images").getPublicUrl(path);
-    return { path, publicUrl: data.publicUrl };
+    const body = new FormData();
+    body.append("image", file);
+    return requestJson("/api/admin/images", { method: "POST", body });
   }
 
   global.MimosCatalog = {

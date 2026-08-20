@@ -1,92 +1,107 @@
-# Configurar o catálogo automático
+# Configurar o catálogo na Cloudflare
 
-O site continua funcionando com os produtos locais enquanto o Supabase não estiver configurado. Depois desta configuração, os produtos passam a ser carregados do banco e podem ser alterados em `/admin`.
+O projeto usa serviços da Cloudflare que possuem faixa gratuita:
 
-## 1. Criar o projeto no Supabase
+- **Pages + Functions**: hospeda o site e a API;
+- **D1**: guarda produtos, preços e opções;
+- **R2**: guarda as fotos enviadas pelo painel;
+- **Access**: libera o painel somente para o e-mail da proprietária.
 
-1. Acesse <https://supabase.com/dashboard> e crie uma conta.
-2. Clique em **New project**.
-3. Escolha um nome, uma senha forte para o banco e a região mais próxima disponível.
-4. Aguarde o projeto ficar pronto.
+O catálogo continua mostrando os seis produtos locais se a conexão com o D1 falhar. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
 
-## 2. Criar as tabelas e os produtos iniciais
+## 1. Entrar na Cloudflare pelo terminal
 
-1. No menu do projeto, abra **SQL Editor**.
-2. Clique em **New query**.
-3. Abra o arquivo [`supabase/setup.sql`](supabase/setup.sql) deste repositório.
-4. Copie todo o conteúdo, cole no editor e clique em **Run**.
+Na pasta do projeto, execute:
 
-Esse script cria:
-
-- tabela de produtos;
-- lista de administradores;
-- seis produtos iniciais;
-- espaço de armazenamento de imagens;
-- regras que permitem leitura pública e escrita somente por administradores.
-
-## 3. Criar o acesso da proprietária
-
-1. No Supabase, abra **Authentication > Users**.
-2. Clique em **Add user** e escolha a opção para criar um usuário.
-3. Informe o e-mail da proprietária e uma senha temporária forte.
-4. Confirme a criação do usuário.
-5. Volte ao **SQL Editor** e execute, trocando o e-mail:
-
-```sql
-insert into public.admin_users (user_id)
-select id
-from auth.users
-where lower(email) = lower('EMAIL_DA_CLIENTE')
-on conflict (user_id) do nothing;
+```bash
+npx wrangler login
 ```
 
-6. Em **Authentication**, desative novos cadastros públicos. O painel não possui botão de cadastro; somente usuários criados por você devem entrar.
+O navegador abrirá a Cloudflare. Crie uma conta ou entre e autorize o Wrangler.
 
-## 4. Copiar as credenciais públicas
+## 2. Criar o banco D1
 
-No Supabase, abra as configurações de API do projeto e copie:
+Execute:
 
-- **Project URL**;
-- **Publishable key**. Projetos antigos podem mostrar o nome **anon key**.
-
-Não copie `Secret key` nem `service_role`. Essas chaves nunca podem aparecer no site.
-
-## 5. Configurar a Vercel
-
-1. Abra o projeto `mimos-helo` na Vercel.
-2. Entre em **Settings > Environment Variables**.
-3. Crie a variável `SUPABASE_URL` com o valor de **Project URL**.
-4. Crie a variável `SUPABASE_PUBLISHABLE_KEY` com o valor da **Publishable key**.
-5. Marque os ambientes **Production**, **Preview** e **Development**.
-6. Salve as variáveis.
-7. Abra **Deployments**, localize o último deploy e escolha **Redeploy**.
-
-As variáveis só entram em vigor em um novo deploy.
-
-## 6. Abrir o painel
-
-Depois do novo deploy, acesse:
-
-```text
-https://mimos-helo.vercel.app/admin
+```bash
+npx wrangler d1 create mimos-helo-catalogo
+npx wrangler d1 migrations apply mimos-helo-catalogo --remote
 ```
 
-Entre com o e-mail e a senha criados no Supabase. A proprietária poderá:
+Confirme a aplicação quando o terminal perguntar. As duas migrações criam a tabela e cadastram os seis produtos iniciais. Elas não apagam produtos existentes e podem ser executadas novamente com segurança pelo comando de migrações.
 
-- cadastrar, editar e excluir produtos;
-- publicar ou ocultar produtos;
-- enviar fotos;
-- alterar preço, descrição e categoria;
-- criar opções com preços diferentes;
-- criar campos de personalização;
-- organizar a ordem do catálogo.
+## 3. Criar o espaço de fotos R2
 
-Cada produto salvo aparece automaticamente no catálogo público. Os dados preenchidos pelos compradores continuam somente no navegador e seguem diretamente para o WhatsApp.
+Execute:
+
+```bash
+npx wrangler r2 bucket create mimos-helo-imagens
+```
+
+O bucket é privado. As imagens são entregues ao catálogo somente pela rota `/media`, que aplica cache e não expõe credenciais.
+
+## 4. Hospedar o repositório no Cloudflare Pages
+
+1. Abra <https://dash.cloudflare.com>.
+2. Entre em **Workers & Pages** e clique em **Create application**.
+3. Escolha **Pages > Connect to Git**.
+4. Autorize o GitHub e selecione `IgorJustino/Mimos-Helo`.
+5. Use o nome `mimos-helo`.
+6. Em **Framework preset**, escolha **None**.
+7. Deixe **Build command** vazio.
+8. Em **Build output directory**, informe `/`.
+9. Salve e faça o primeiro deploy.
+
+A pasta `functions` é reconhecida automaticamente e vira a API do site.
+
+## 5. Conectar D1 e R2 ao Pages
+
+No projeto `mimos-helo`, abra **Settings > Bindings** e adicione:
+
+| Tipo | Nome da variável | Recurso |
+|---|---|---|
+| D1 database | `DB` | `mimos-helo-catalogo` |
+| R2 bucket | `IMAGES` | `mimos-helo-imagens` |
+
+Adicione os dois bindings em **Production**. Se quiser testar deploys de outras branches, repita em **Preview**. Depois faça um novo deploy.
+
+Abra `/api/health`. Quando estiver correto, a resposta conterá `"configured":true`.
+
+## 6. Configurar o domínio
+
+Para um domínio `.com.br`, compre no <https://registro.br>. Depois:
+
+1. Adicione o domínio à conta Cloudflare em **Websites > Add a domain**.
+2. No Registro.br, troque os servidores DNS pelos dois nameservers mostrados pela Cloudflare.
+3. Aguarde a ativação do domínio.
+4. No Pages, abra **Custom domains** e conecte o domínio principal, por exemplo `mimoshelo.com.br`.
+5. Conecte também `admin.mimoshelo.com.br` ao mesmo projeto Pages.
+
+O domínio principal fica público. O subdomínio `admin` será protegido na próxima etapa.
+
+## 7. Proteger o painel com Cloudflare Access
+
+1. Abra **Zero Trust** no painel Cloudflare.
+2. Em **Settings > Authentication > Login methods**, habilite **One-time PIN**.
+3. Entre em **Access > Applications > Add an application > Self-hosted**.
+4. Dê o nome `Painel Mimos Helo` e use o domínio `admin.mimoshelo.com.br` sem caminho.
+5. Crie uma política **Allow** com a regra **Emails** e informe somente o e-mail da proprietária.
+6. Salve e copie o valor **Application Audience (AUD)** exibido pela aplicação.
+
+No Pages, em **Settings > Variables and Secrets**, crie estas variáveis de produção:
+
+| Variável | Valor |
+|---|---|
+| `TEAM_DOMAIN` | `https://SEU-TIME.cloudflareaccess.com` |
+| `POLICY_AUD` | o Audience (AUD) copiado |
+| `ADMIN_EMAILS` | o e-mail autorizado; para mais de um, separe por vírgula |
+
+Faça um novo deploy. Ao abrir `https://admin.mimoshelo.com.br/admin`, a Cloudflare enviará um código ao e-mail autorizado. Depois da confirmação, o painel permitirá cadastrar, editar, ocultar e excluir produtos e enviar fotos.
 
 ## Solução de problemas
 
-- **Aparece “Configuração necessária”**: confira as duas variáveis da Vercel e faça um novo deploy.
-- **Login incorreto**: confirme o usuário em Authentication > Users.
-- **Usuário sem autorização**: execute novamente o comando da etapa 3 com o e-mail correto.
-- **Imagem não envia**: confirme que o arquivo é JPG, PNG ou WebP e possui até 5 MB.
-- **O produto está no painel, mas não aparece no site**: ative a opção **Produto publicado** e salve.
+- **“Configuração necessária”**: confira os bindings `DB` e `IMAGES`, aplique as migrações e faça novo deploy.
+- **O catálogo mostra os produtos antigos**: acesse `/api/health`; se `configured` não for `true`, a lista local de segurança está sendo usada.
+- **Acesso não autorizado**: confirme `TEAM_DOMAIN`, `POLICY_AUD` e `ADMIN_EMAILS`, sem espaços extras.
+- **Imagem não envia**: use JPG, PNG ou WebP com até 5 MB e confira o binding `IMAGES`.
+- **Produto não aparece**: ative **Produto publicado** no painel e salve.

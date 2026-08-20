@@ -75,12 +75,8 @@ async function screenshot(path) {
   await writeFile(path, Buffer.from(result.data, "base64"));
 }
 
-const supabaseMock = `
+const cloudflareApiMock = `
   (() => {
-    window.MIMOS_HELO_CONFIG = {
-      supabaseUrl: 'https://example.supabase.co',
-      supabasePublishableKey: 'sb_publishable_test'
-    };
     const user = { id: 'admin-user-id', email: 'helo@example.com' };
     let products = [{
       id: 'produto-teste', slug: 'produto-teste', category: 'cadernetas', badge: 'Destaque',
@@ -92,59 +88,34 @@ const supabaseMock = `
       published: true, sort_order: 10, created_at: '2026-08-18T00:00:00Z', updated_at: '2026-08-18T00:00:00Z'
     }];
 
-    function query(table) {
-      let action = 'select';
-      let payload = null;
-      const filters = {};
-      const result = () => {
-        if (table === 'admin_users') return { data: { user_id: user.id }, error: null };
-        if (action === 'upsert') {
-          const row = { ...payload, id: payload.id || 'novo-produto-id', created_at: '2026-08-18T00:00:00Z', updated_at: '2026-08-18T00:00:00Z' };
-          const index = products.findIndex((item) => item.id === row.id);
-          if (index >= 0) products[index] = row;
-          else products.push(row);
-          return { data: row, error: null };
-        }
-        if (action === 'delete') {
-          products = products.filter((item) => item.id !== filters.id);
-          return { data: null, error: null };
-        }
-        let data = [...products];
-        Object.entries(filters).forEach(([key, value]) => { data = data.filter((item) => item[key] === value); });
-        return { data, error: null };
-      };
-      const chain = {
-        select() { return chain; },
-        order() { return chain; },
-        eq(key, value) { filters[key] = value; return chain; },
-        upsert(row) { action = 'upsert'; payload = row; return chain; },
-        delete() { action = 'delete'; return chain; },
-        maybeSingle() { return Promise.resolve(result()); },
-        single() { return Promise.resolve(result()); },
-        then(resolve, reject) { return Promise.resolve(result()).then(resolve, reject); }
-      };
-      return chain;
-    }
+    const nativeFetch = window.fetch.bind(window);
+    const json = (value, status = 200) => Promise.resolve(new Response(JSON.stringify(value), {
+      status,
+      headers: { 'Content-Type': 'application/json' }
+    }));
 
-    window.supabase = {
-      createClient() {
-        return {
-          auth: {
-            getUser: async () => ({ data: { user }, error: null }),
-            signInWithPassword: async () => ({ data: { user }, error: null }),
-            signOut: async () => ({ error: null })
-          },
-          from: query,
-          storage: {
-            from() {
-              return {
-                upload: async () => ({ data: { path: 'catalogo/teste.jpg' }, error: null }),
-                getPublicUrl: () => ({ data: { publicUrl: 'assets/images/reforma-luxo.jpeg' } })
-              };
-            }
-          }
-        };
+    window.fetch = async (input, options = {}) => {
+      const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+      if (!url.pathname.startsWith('/api/')) return nativeFetch(input, options);
+      if (url.pathname === '/api/health') return json({ configured: true, database: 'cloudflare-d1', storage: 'cloudflare-r2' });
+      if (url.pathname === '/api/admin/me') return json({ user });
+      if (url.pathname === '/api/admin/products' && (!options.method || options.method === 'GET')) {
+        return json({ products });
       }
+      if (url.pathname === '/api/admin/products' && options.method === 'POST') {
+        const payload = JSON.parse(options.body);
+        const row = { ...payload, id: payload.id || 'novo-produto-id', created_at: '2026-08-18T00:00:00Z', updated_at: '2026-08-18T00:00:00Z' };
+        const index = products.findIndex((item) => item.id === row.id);
+        if (index >= 0) products[index] = row;
+        else products.push(row);
+        return json({ product: row });
+      }
+      if (url.pathname.startsWith('/api/admin/products/') && options.method === 'DELETE') {
+        const id = decodeURIComponent(url.pathname.split('/').at(-1));
+        products = products.filter((item) => item.id !== id);
+        return json({ deleted: true });
+      }
+      return json({ error: 'Rota não simulada.' }, 404);
     };
   })();
 `;
@@ -152,7 +123,7 @@ const supabaseMock = `
 try {
   await command("Page.enable");
   await command("Runtime.enable");
-  await command("Page.addScriptToEvaluateOnNewDocument", { source: supabaseMock });
+  await command("Page.addScriptToEvaluateOnNewDocument", { source: cloudflareApiMock });
   await command("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await command("Page.navigate", { url: `${siteUrl}/admin.html` });
   await delay(1800);

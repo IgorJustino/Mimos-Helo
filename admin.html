@@ -43,15 +43,16 @@
         <article class="gate-card setup-card">
           <span class="gate-kicker">Configuração necessária</span>
           <h1>Conecte o ateliê ao catálogo</h1>
-          <p>O painel está pronto, mas ainda precisa das credenciais públicas do Supabase configuradas na Vercel.</p>
+          <p>O painel está pronto, mas o banco D1 e o espaço de imagens R2 ainda precisam ser conectados ao projeto na Cloudflare.</p>
           <ol class="setup-steps">
-            <li>Crie o projeto no Supabase.</li>
-            <li>Execute o arquivo <code>supabase/setup.sql</code> no SQL Editor.</li>
-            <li>Crie a usuária administradora e autorize o e-mail.</li>
-            <li>Adicione <code>SUPABASE_URL</code> e <code>SUPABASE_PUBLISHABLE_KEY</code> na Vercel.</li>
+            <li>Crie o banco D1 <code>mimos-helo-catalogo</code>.</li>
+            <li>Execute as migrações da pasta <code>migrations</code>.</li>
+            <li>Crie o bucket R2 <code>mimos-helo-imagens</code>.</li>
+            <li>Conecte os bindings <code>DB</code> e <code>IMAGES</code> ao projeto.</li>
+            <li>Proteja o endereço administrativo com Cloudflare Access.</li>
           </ol>
-          <p class="gate-note">Nunca coloque a Secret Key ou Service Role no navegador.</p>
-          <a class="button button-primary" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Abrir Supabase</a>
+          <p class="gate-note">O catálogo público continua funcionando enquanto essa configuração é concluída.</p>
+          <a class="button button-primary" href="https://dash.cloudflare.com" target="_blank" rel="noreferrer">Abrir Cloudflare</a>
         </article>
       </section>
 
@@ -59,19 +60,11 @@
         <article class="gate-card login-card">
           <div class="login-mark" aria-hidden="true">MH</div>
           <span class="gate-kicker">Acesso da proprietária</span>
-          <h1>Entre no seu ateliê</h1>
-          <p>Use o e-mail e a senha cadastrados para cuidar dos produtos.</p>
+          <h1>Confirme seu acesso</h1>
+          <p>Este painel é protegido pela Cloudflare Access. Abra o endereço administrativo e confirme o código enviado ao e-mail autorizado.</p>
           <form class="login-form" data-login-form>
-            <label>
-              <span>E-mail</span>
-              <input type="email" name="email" autocomplete="username" required placeholder="seuemail@exemplo.com" />
-            </label>
-            <label>
-              <span>Senha</span>
-              <input type="password" name="password" autocomplete="current-password" required minlength="8" placeholder="Sua senha" />
-            </label>
             <p class="form-message" data-login-message role="alert"></p>
-            <button class="button button-primary button-full" type="submit" data-login-submit>Entrar no catálogo</button>
+            <button class="button button-primary button-full" type="submit" data-login-submit>Verificar acesso novamente</button>
           </form>
           <a class="back-to-catalog" href="/">← Voltar ao catálogo</a>
         </article>
@@ -80,8 +73,8 @@
       <section class="admin-gate" data-admin-denied hidden>
         <article class="gate-card">
           <span class="gate-kicker">Acesso não autorizado</span>
-          <h1>Este usuário não administra o catálogo</h1>
-          <p>O login existe, mas o e-mail ainda não foi incluído na lista de administradores.</p>
+          <h1>Este e-mail não administra o catálogo</h1>
+          <p>Entre novamente usando um dos e-mails definidos em <code>ADMIN_EMAILS</code>.</p>
           <button class="button button-primary" type="button" data-admin-signout>Sair e tentar outro e-mail</button>
         </article>
       </section>
