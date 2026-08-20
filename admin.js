@@ -87,7 +87,9 @@
 
   function humanizeError(error) {
     const message = String(error?.message || error || "");
-    if (/não autorizado|unauthorized|forbidden|jwt|token/i.test(message)) return "Acesso não autorizado. Entre novamente com o e-mail da administradora.";
+    if (/usuário ou senha|credenciais inválidas/i.test(message)) return "Usuário ou senha incorretos.";
+    if (/sessão|não autorizado|unauthorized|forbidden/i.test(message)) return "Sua sessão expirou. Entre novamente.";
+    if (/muitas tentativas/i.test(message)) return message;
     if (/unique constraint|products.slug|constraint failed/i.test(message)) return "Já existe um produto com esse nome. Altere o nome e tente novamente.";
     if (/r2|binding.*images|espaço de imagens/i.test(message)) return "O espaço de imagens R2 ainda não foi conectado na Cloudflare.";
     if (/d1|binding.*db|no such table/i.test(message)) return "O banco D1 ainda não foi configurado completamente.";
@@ -455,12 +457,30 @@
     event.preventDefault();
     loginMessage.textContent = "";
     const submitButton = document.querySelector("[data-login-submit]");
-    setBusy([submitButton], true, "Verificando…");
-    window.location.reload();
+    setBusy([submitButton], true, "Entrando…");
+    try {
+      const formData = new FormData(loginForm);
+      const { user } = await catalog.signIn(
+        String(formData.get("username") || "").trim(),
+        String(formData.get("password") || "")
+      );
+      await loadWorkspace(user);
+      loginForm.reset();
+    } catch (error) {
+      loginMessage.textContent = error?.message || humanizeError(error);
+    } finally {
+      setBusy([submitButton], false);
+    }
   }
 
   async function handleSignOut() {
     await catalog.signOut();
+    state.currentUser = null;
+    state.products = [];
+    state.selectedId = null;
+    productForm.hidden = true;
+    editorEmpty.hidden = false;
+    showView("login");
   }
 
   async function boot() {

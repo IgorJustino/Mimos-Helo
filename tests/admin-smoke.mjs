@@ -78,6 +78,7 @@ async function screenshot(path) {
 const cloudflareApiMock = `
   (() => {
     const user = { id: 'admin-user-id', email: 'helo@example.com' };
+    let authenticated = false;
     let products = [{
       id: 'produto-teste', slug: 'produto-teste', category: 'cadernetas', badge: 'Destaque',
       meta: 'Caderneta', name: 'Produto de teste', short_name: '', price: 42, price_note: 'no Pix',
@@ -98,7 +99,21 @@ const cloudflareApiMock = `
       const url = new URL(typeof input === 'string' ? input : input.url, location.href);
       if (!url.pathname.startsWith('/api/')) return nativeFetch(input, options);
       if (url.pathname === '/api/health') return json({ configured: true, database: 'cloudflare-d1', storage: 'cloudflare-r2' });
-      if (url.pathname === '/api/admin/me') return json({ user });
+      if (url.pathname === '/api/admin/me') {
+        return authenticated ? json({ user }) : json({ error: 'Entre com suas credenciais para continuar.' }, 401);
+      }
+      if (url.pathname === '/api/admin/login' && options.method === 'POST') {
+        const credentials = JSON.parse(options.body);
+        if (credentials.username !== 'admin-mimos' || credentials.password !== 'senha-segura-teste') {
+          return json({ error: 'Usuário ou senha incorretos.' }, 401);
+        }
+        authenticated = true;
+        return json({ user });
+      }
+      if (url.pathname === '/api/admin/logout' && options.method === 'POST') {
+        authenticated = false;
+        return json({ signedOut: true });
+      }
       if (url.pathname === '/api/admin/products' && (!options.method || options.method === 'GET')) {
         return json({ products });
       }
@@ -128,6 +143,13 @@ try {
   await command("Page.navigate", { url: `${siteUrl}/admin.html` });
   await delay(1800);
 
+  assert(!(await evaluate("document.querySelector('[data-admin-login]').hidden")), "O formulário de login não abriu.");
+  await evaluate(`
+    document.querySelector('[name="username"]').value = 'admin-mimos';
+    document.querySelector('[name="password"]').value = 'senha-segura-teste';
+    document.querySelector('[data-login-form]').requestSubmit();
+  `);
+  await delay(500);
   assert(!(await evaluate("document.querySelector('[data-admin-workspace]').hidden")), "O painel autenticado não abriu.");
   assert((await evaluate("document.querySelectorAll('.admin-product-card').length")) === 1, "A lista de produtos do painel não carregou.");
   assert((await evaluate("document.querySelector('[name=\"name\"]').value")) === "Produto de teste", "O editor não recebeu os dados do produto.");

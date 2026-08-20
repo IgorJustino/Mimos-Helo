@@ -4,7 +4,7 @@ Catálogo responsivo da Mimos Helo, com gestão de produtos, personalização do
 
 ## Catálogo automático
 
-O catálogo público funciona com uma lista local de segurança e usa Cloudflare D1 e R2 quando conectado. A proprietária administra produtos, fotos, preços, opções e campos de personalização em `admin.html`, sem editar código. O acesso administrativo é protegido pela Cloudflare Access.
+O catálogo público funciona com uma lista local de segurança e usa Cloudflare D1 e R2 quando conectado. A proprietária administra produtos, fotos, preços, opções e campos de personalização em `admin.html`, sem editar código. O acesso administrativo usa credenciais protegidas por hash e uma sessão em cookie seguro.
 
 O banco armazena somente informações dos produtos. Os dados preenchidos pelos compradores permanecem na sessão do navegador e são usados para montar a mensagem do WhatsApp.
 
@@ -32,7 +32,7 @@ Os dados preenchidos na personalização ficam somente na sessão atual do naveg
 
 ## Publicar
 
-O frontend não depende de framework. Na Cloudflare Pages, a pasta `functions` fornece a API, o D1 guarda o catálogo, o R2 guarda as fotos e a Cloudflare Access protege a área administrativa. Nenhuma chave de banco é enviada ao navegador.
+O frontend não depende de framework. Na Cloudflare Pages, a pasta `functions` fornece a API, o D1 guarda o catálogo e o R2 guarda as fotos. A senha administrativa não é salva no código nem enviada pelo banco: somente seu hash fica nos secrets do Pages.
 
 Depois de enviar as alterações para a `main`, publique o código com:
 

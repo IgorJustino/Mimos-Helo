@@ -1,4 +1,6 @@
-const jwksCache = new Map();
+const COOKIE_NAME = "mimos_helo_admin";
+const SESSION_DURATION_SECONDS = 8 * 60 * 60;
+const encoder = new TextEncoder();
 
 export class AuthError extends Error {
   constructor(message, status = 403) {
@@ -7,89 +9,122 @@ export class AuthError extends Error {
   }
 }
 
-function decodeBase64Url(value) {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+function bytesToBase64Url(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-function decodeJson(value) {
+function base64UrlToBytes(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
   try {
-    return JSON.parse(new TextDecoder().decode(decodeBase64Url(value)));
+    const binary = atob(padded);
+    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
   } catch {
-    throw new AuthError("Token de acesso inválido.");
+    throw new AuthError("Sessão administrativa inválida.", 401);
   }
 }
 
-async function loadJwks(teamDomain) {
-  const cached = jwksCache.get(teamDomain);
-  if (cached && cached.expiresAt > Date.now()) return cached.keys;
-
-  const response = await fetch(`${teamDomain}/cdn-cgi/access/certs`, {
-    cf: { cacheTtl: 3600, cacheEverything: true }
-  });
-  if (!response.ok) throw new AuthError("Não foi possível validar o acesso administrativo.", 503);
-  const body = await response.json();
-  const keys = Array.isArray(body.keys) ? body.keys : [];
-  jwksCache.set(teamDomain, { keys, expiresAt: Date.now() + 60 * 60 * 1000 });
-  return keys;
+function readCookie(request, name) {
+  const cookies = request.headers.get("cookie") || "";
+  for (const entry of cookies.split(";")) {
+    const [cookieName, ...parts] = entry.trim().split("=");
+    if (cookieName === name) return parts.join("=");
+  }
+  return "";
 }
 
-function audienceMatches(tokenAudience, expectedAudience) {
-  return Array.isArray(tokenAudience)
-    ? tokenAudience.includes(expectedAudience)
-    : tokenAudience === expectedAudience;
+function requireAuthConfiguration(env) {
+  const username = String(env.ADMIN_USERNAME || "").trim();
+  const passwordHash = String(env.ADMIN_PASSWORD_HASH || "");
+  const sessionSecret = String(env.SESSION_SECRET || "");
+  if (!username || !passwordHash || sessionSecret.length < 32) {
+    throw new AuthError("As credenciais administrativas ainda não foram configuradas.", 503);
+  }
+  return { username, passwordHash, sessionSecret };
+}
+
+async function importHmacKey(secret) {
+  return crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
+}
+
+async function passwordBytes(password, salt, iterations) {
+  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations },
+    key,
+    256
+  );
+  return new Uint8Array(bits);
+}
+
+function sameBytes(left, right) {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
+  return difference === 0;
+}
+
+export async function verifyCredentials(inputUsername, password, env) {
+  const { username, passwordHash } = requireAuthConfiguration(env);
+  const [iterationsValue, saltValue, expectedValue] = passwordHash.split(".");
+  const iterations = Number(iterationsValue);
+  if (!Number.isInteger(iterations) || iterations < 100000 || !saltValue || !expectedValue) {
+    throw new AuthError("A senha administrativa foi configurada incorretamente.", 503);
+  }
+
+  const actual = await passwordBytes(String(password || ""), base64UrlToBytes(saltValue), iterations);
+  const expected = base64UrlToBytes(expectedValue);
+  return String(inputUsername || "") === username && sameBytes(actual, expected);
+}
+
+export async function createAdminSession(username, env) {
+  const config = requireAuthConfiguration(env);
+  if (username !== config.username) throw new AuthError("Credenciais inválidas.", 401);
+  const payload = bytesToBase64Url(
+    encoder.encode(JSON.stringify({ sub: username, exp: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS }))
+  );
+  const signature = new Uint8Array(
+    await crypto.subtle.sign("HMAC", await importHmacKey(config.sessionSecret), encoder.encode(payload))
+  );
+  const token = `${payload}.${bytesToBase64Url(signature)}`;
+  return `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_DURATION_SECONDS}`;
+}
+
+export function clearAdminSession() {
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
 }
 
 export async function authenticateAdmin(request, env) {
-  const teamDomain = String(env.TEAM_DOMAIN || "").replace(/\/$/, "");
-  const expectedAudience = String(env.POLICY_AUD || "");
-  const allowedEmails = String(env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
+  const { username, sessionSecret } = requireAuthConfiguration(env);
+  const token = readCookie(request, COOKIE_NAME);
+  const [payloadValue, signatureValue] = token.split(".");
+  if (!payloadValue || !signatureValue) throw new AuthError("Entre com suas credenciais para continuar.", 401);
 
-  if (!teamDomain || !expectedAudience || !allowedEmails.length) {
-    throw new AuthError("A proteção administrativa ainda não foi configurada.", 503);
+  const validSignature = await crypto.subtle.verify(
+    "HMAC",
+    await importHmacKey(sessionSecret),
+    base64UrlToBytes(signatureValue),
+    encoder.encode(payloadValue)
+  );
+  if (!validSignature) throw new AuthError("Sessão administrativa inválida.", 401);
+
+  let payload;
+  try {
+    payload = JSON.parse(new TextDecoder().decode(base64UrlToBytes(payloadValue)));
+  } catch {
+    throw new AuthError("Sessão administrativa inválida.", 401);
   }
 
-  const token = request.headers.get("cf-access-jwt-assertion");
-  if (!token) throw new AuthError("Entre pelo endereço seguro do painel.", 401);
-
-  const parts = token.split(".");
-  if (parts.length !== 3) throw new AuthError("Token de acesso inválido.");
-  const header = decodeJson(parts[0]);
-  const payload = decodeJson(parts[1]);
-  if (header.alg !== "RS256" || !header.kid) throw new AuthError("Token de acesso inválido.");
-
-  const keys = await loadJwks(teamDomain);
-  const jwk = keys.find((candidate) => candidate.kid === header.kid);
-  if (!jwk) throw new AuthError("A chave do acesso administrativo não foi reconhecida.");
-
-  const publicKey = await crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
-  const validSignature = await crypto.subtle.verify(
-    "RSASSA-PKCS1-v1_5",
-    publicKey,
-    decodeBase64Url(parts[2]),
-    new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
-  );
-  if (!validSignature) throw new AuthError("Assinatura do acesso inválida.");
-
-  const now = Math.floor(Date.now() / 1000);
-  if (payload.iss !== teamDomain) throw new AuthError("Emissor do acesso inválido.");
-  if (!audienceMatches(payload.aud, expectedAudience)) throw new AuthError("Aplicação de acesso inválida.");
-  if (!payload.exp || payload.exp <= now) throw new AuthError("Sua sessão expirou.", 401);
-  if (payload.nbf && payload.nbf > now) throw new AuthError("Sua sessão ainda não é válida.");
-
-  const email = String(payload.email || "").toLowerCase();
-  if (!email || !allowedEmails.includes(email)) throw new AuthError("Este e-mail não administra o catálogo.");
-
-  return { id: String(payload.sub || email), email };
+  if (payload.sub !== username || !payload.exp || payload.exp <= Math.floor(Date.now() / 1000)) {
+    throw new AuthError("Sua sessão expirou. Entre novamente.", 401);
+  }
+  return { id: username, username, email: "" };
 }

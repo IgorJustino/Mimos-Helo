@@ -5,7 +5,7 @@ O projeto usa serviços da Cloudflare que possuem faixa gratuita:
 - **Pages + Functions**: hospeda o site e a API;
 - **D1**: guarda produtos, preços e opções;
 - **R2**: guarda as fotos enviadas pelo painel;
-- **Access**: libera o painel somente para o e-mail da proprietária.
+- **Pages Secrets**: guarda o usuário, o hash da senha e a chave de sessão.
 
 O catálogo continua mostrando os seis produtos locais se a conexão com o D1 falhar. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
 
@@ -75,29 +75,25 @@ Para um domínio `.com.br`, compre no <https://registro.br>. Depois:
 
 O domínio principal fica público. O subdomínio `admin` será protegido na próxima etapa.
 
-## 7. Proteger o painel com Cloudflare Access
+## 7. Credenciais do painel
 
-1. Abra **Zero Trust** no painel Cloudflare.
-2. Em **Settings > Authentication > Login methods**, habilite **One-time PIN**.
-3. Entre em **Access > Applications > Add an application > Self-hosted**.
-4. Dê o nome `Painel Mimos Helo` e use o domínio `admin.mimoshelo.com.br` sem caminho.
-5. Crie uma política **Allow** com a regra **Emails** e informe somente o e-mail da proprietária.
-6. Salve e copie o valor **Application Audience (AUD)** exibido pela aplicação.
+O painel usa três secrets de produção no Cloudflare Pages:
 
-No Pages, em **Settings > Variables and Secrets**, crie estas variáveis de produção:
-
-| Variável | Valor |
+| Secret | Finalidade |
 |---|---|
-| `TEAM_DOMAIN` | `https://SEU-TIME.cloudflareaccess.com` |
-| `POLICY_AUD` | o Audience (AUD) copiado |
-| `ADMIN_EMAILS` | o e-mail autorizado; para mais de um, separe por vírgula |
+| `ADMIN_USERNAME` | nome usado no formulário de login |
+| `ADMIN_PASSWORD_HASH` | hash PBKDF2 da senha; a senha original não fica armazenada |
+| `SESSION_SECRET` | assina o cookie seguro da sessão |
 
-Faça um novo deploy. Ao abrir `https://admin.mimoshelo.com.br/admin`, a Cloudflare enviará um código ao e-mail autorizado. Depois da confirmação, o painel permitirá cadastrar, editar, ocultar e excluir produtos e enviar fotos.
+Eles são cadastrados pelo comando `npx wrangler pages secret put NOME --project-name mimos-helo`. Depois de alterá-los, faça um novo deploy.
+
+O login possui limite de tentativas por endereço IP. A sessão dura oito horas, usa cookie `HttpOnly`, `Secure` e `SameSite=Strict`.
 
 ## Solução de problemas
 
 - **“Configuração necessária”**: confira os bindings `DB` e `IMAGES`, aplique as migrações e faça novo deploy.
 - **O catálogo mostra os produtos antigos**: acesse `/api/health`; se `configured` não for `true`, a lista local de segurança está sendo usada.
-- **Acesso não autorizado**: confirme `TEAM_DOMAIN`, `POLICY_AUD` e `ADMIN_EMAILS`, sem espaços extras.
+- **Usuário ou senha incorretos**: confira as credenciais e respeite letras maiúsculas e minúsculas.
+- **Muitas tentativas**: aguarde 15 minutos antes de tentar novamente.
 - **Imagem não envia**: use JPG, PNG ou WebP com até 5 MB e confira o binding `IMAGES`.
 - **Produto não aparece**: ative **Produto publicado** no painel e salve.

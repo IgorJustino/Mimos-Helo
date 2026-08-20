@@ -49,7 +49,7 @@
             <li>Execute as migrações da pasta <code>migrations</code>.</li>
             <li>Crie o bucket R2 <code>mimos-helo-imagens</code>.</li>
             <li>Conecte os bindings <code>DB</code> e <code>IMAGES</code> ao projeto.</li>
-            <li>Proteja o endereço administrativo com Cloudflare Access.</li>
+            <li>Cadastre os secrets de usuário, senha e sessão no Pages.</li>
           </ol>
           <p class="gate-note">O catálogo público continua funcionando enquanto essa configuração é concluída.</p>
           <a class="button button-primary" href="https://dash.cloudflare.com" target="_blank" rel="noreferrer">Abrir Cloudflare</a>
@@ -61,10 +61,18 @@
           <div class="login-mark" aria-hidden="true">MH</div>
           <span class="gate-kicker">Acesso da proprietária</span>
           <h1>Confirme seu acesso</h1>
-          <p>Este painel é protegido pela Cloudflare Access. Abra o endereço administrativo e confirme o código enviado ao e-mail autorizado.</p>
+          <p>Use as credenciais administrativas para cadastrar e atualizar os produtos.</p>
           <form class="login-form" data-login-form>
+            <label>
+              <span>Usuário</span>
+              <input type="text" name="username" autocomplete="username" required placeholder="Seu usuário" />
+            </label>
+            <label>
+              <span>Senha</span>
+              <input type="password" name="password" autocomplete="current-password" required minlength="12" placeholder="Sua senha" />
+            </label>
             <p class="form-message" data-login-message role="alert"></p>
-            <button class="button button-primary button-full" type="submit" data-login-submit>Verificar acesso novamente</button>
+            <button class="button button-primary button-full" type="submit" data-login-submit>Entrar no catálogo</button>
           </form>
           <a class="back-to-catalog" href="/">← Voltar ao catálogo</a>
         </article>
@@ -73,8 +81,8 @@
       <section class="admin-gate" data-admin-denied hidden>
         <article class="gate-card">
           <span class="gate-kicker">Acesso não autorizado</span>
-          <h1>Este e-mail não administra o catálogo</h1>
-          <p>Entre novamente usando um dos e-mails definidos em <code>ADMIN_EMAILS</code>.</p>
+          <h1>Esta conta não administra o catálogo</h1>
+          <p>Saia e entre novamente usando as credenciais administrativas.</p>
           <button class="button button-primary" type="button" data-admin-signout>Sair e tentar outro e-mail</button>
         </article>
       </section>

@@ -138,13 +138,15 @@
     return Boolean(userId);
   }
 
-  async function signIn() {
-    global.location.reload();
-    return { user: null };
+  async function signIn(username, password) {
+    return requestJson("/api/admin/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
   }
 
   async function signOut() {
-    global.location.assign("/cdn-cgi/access/logout");
+    await requestJson("/api/admin/logout", { method: "POST", body: JSON.stringify({}) });
   }
 
   async function saveProduct(product) {
