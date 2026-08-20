@@ -34,6 +34,14 @@ Os dados preenchidos na personalização ficam somente na sessão atual do naveg
 
 O frontend não depende de framework. Na Cloudflare Pages, a pasta `functions` fornece a API, o D1 guarda o catálogo, o R2 guarda as fotos e a Cloudflare Access protege a área administrativa. Nenhuma chave de banco é enviada ao navegador.
 
+Depois de enviar as alterações para a `main`, publique o código com:
+
+```bash
+npx wrangler pages deploy . --project-name mimos-helo --branch main
+```
+
+Cadastros e edições feitos no painel são gravados diretamente no D1 e não precisam de novo deploy.
+
 ## Verificação
 
 Com o servidor local ativo e o Google Chrome instalado:

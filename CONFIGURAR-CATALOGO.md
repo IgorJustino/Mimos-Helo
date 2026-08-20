@@ -40,30 +40,26 @@ npx wrangler r2 bucket create mimos-helo-imagens
 
 O bucket é privado. As imagens são entregues ao catálogo somente pela rota `/media`, que aplica cache e não expõe credenciais.
 
-## 4. Hospedar o repositório no Cloudflare Pages
+## 4. Publicar no Cloudflare Pages
 
-1. Abra <https://dash.cloudflare.com>.
-2. Entre em **Workers & Pages** e clique em **Create application**.
-3. Escolha **Pages > Connect to Git**.
-4. Autorize o GitHub e selecione `IgorJustino/Mimos-Helo`.
-5. Use o nome `mimos-helo`.
-6. Em **Framework preset**, escolha **None**.
-7. Deixe **Build command** vazio.
-8. Em **Build output directory**, informe `/`.
-9. Salve e faça o primeiro deploy.
+O projeto `mimos-helo` foi criado como **Direct Upload**. Para publicar uma alteração de código depois do commit, execute na pasta do projeto:
 
-A pasta `functions` é reconhecida automaticamente e vira a API do site.
+```bash
+npx wrangler pages deploy . --project-name mimos-helo --branch main
+```
+
+A pasta `functions` é reconhecida automaticamente e vira a API do site. Alterações feitas pela proprietária no painel não precisam de commit nem deploy: são gravadas no D1 e aparecem no catálogo imediatamente.
 
 ## 5. Conectar D1 e R2 ao Pages
 
-No projeto `mimos-helo`, abra **Settings > Bindings** e adicione:
+Os bindings também estão declarados em `wrangler.jsonc`. Para conferi-los no painel, abra o projeto `mimos-helo` em **Settings > Bindings**:
 
 | Tipo | Nome da variável | Recurso |
 |---|---|---|
 | D1 database | `DB` | `mimos-helo-catalogo` |
 | R2 bucket | `IMAGES` | `mimos-helo-imagens` |
 
-Adicione os dois bindings em **Production**. Se quiser testar deploys de outras branches, repita em **Preview**. Depois faça um novo deploy.
+Se precisar cadastrá-los manualmente, use exatamente os nomes da tabela. Depois faça um novo deploy.
 
 Abra `/api/health`. Quando estiver correto, a resposta conterá `"configured":true`.
 
