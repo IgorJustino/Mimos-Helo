@@ -5,7 +5,7 @@ O projeto usa serviços da Cloudflare que possuem faixa gratuita:
 - **Pages + Functions**: hospeda o site e a API;
 - **D1**: guarda produtos, preços e opções;
 - **R2**: guarda as fotos enviadas pelo painel;
-- **Pages Secrets**: guarda o usuário, o hash da senha e a chave de sessão.
+- **D1 privado**: guarda os produtos e as credenciais administrativas protegidas.
 
 O catálogo continua mostrando os seis produtos locais se a conexão com o D1 falhar. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
 
@@ -77,15 +77,15 @@ O domínio principal fica público. O subdomínio `admin` será protegido na pr�
 
 ## 7. Credenciais do painel
 
-O painel usa três secrets de produção no Cloudflare Pages:
+As credenciais ficam na tabela privada `admin_credentials` do D1. Ela não possui rota pública e somente as Functions conseguem consultá-la:
 
-| Secret | Finalidade |
+| Campo | Finalidade |
 |---|---|
-| `ADMIN_USERNAME` | nome usado no formulário de login |
-| `ADMIN_PASSWORD_HASH` | hash PBKDF2 da senha; a senha original não fica armazenada |
-| `SESSION_SECRET` | assina o cookie seguro da sessão |
+| `username` | nome usado no formulário de login |
+| `password_hash` | hash PBKDF2 da senha; a senha original não fica armazenada |
+| `session_secret` | assina o cookie seguro da sessão |
 
-Eles são cadastrados pelo comando `npx wrangler pages secret put NOME --project-name mimos-helo`. Depois de alterá-los, faça um novo deploy.
+Para trocar a senha, gere um novo hash e atualize essa linha pela ferramenta D1. Nunca coloque a senha original, o hash ou a chave de sessão no Git.
 
 O login possui limite de tentativas por endereço IP. A sessão dura oito horas, usa cookie `HttpOnly`, `Secure` e `SameSite=Strict`.
 

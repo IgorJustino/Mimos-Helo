@@ -35,10 +35,14 @@ function readCookie(request, name) {
   return "";
 }
 
-function requireAuthConfiguration(env) {
-  const username = String(env.ADMIN_USERNAME || "").trim();
-  const passwordHash = String(env.ADMIN_PASSWORD_HASH || "");
-  const sessionSecret = String(env.SESSION_SECRET || "");
+async function loadAuthConfiguration(env) {
+  if (!env.DB) throw new AuthError("O banco administrativo ainda não foi configurado.", 503);
+  const row = await env.DB
+    .prepare("SELECT username, password_hash, session_secret FROM admin_credentials WHERE id = 1")
+    .first();
+  const username = String(row?.username || "").trim();
+  const passwordHash = String(row?.password_hash || "");
+  const sessionSecret = String(row?.session_secret || "");
   if (!username || !passwordHash || sessionSecret.length < 32) {
     throw new AuthError("As credenciais administrativas ainda não foram configuradas.", 503);
   }
@@ -73,7 +77,7 @@ function sameBytes(left, right) {
 }
 
 export async function verifyCredentials(inputUsername, password, env) {
-  const { username, passwordHash } = requireAuthConfiguration(env);
+  const { username, passwordHash } = await loadAuthConfiguration(env);
   const [iterationsValue, saltValue, expectedValue] = passwordHash.split(".");
   const iterations = Number(iterationsValue);
   if (!Number.isInteger(iterations) || iterations < 100000 || !saltValue || !expectedValue) {
@@ -86,7 +90,7 @@ export async function verifyCredentials(inputUsername, password, env) {
 }
 
 export async function createAdminSession(username, env) {
-  const config = requireAuthConfiguration(env);
+  const config = await loadAuthConfiguration(env);
   if (username !== config.username) throw new AuthError("Credenciais inválidas.", 401);
   const payload = bytesToBase64Url(
     encoder.encode(JSON.stringify({ sub: username, exp: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS }))
@@ -103,7 +107,7 @@ export function clearAdminSession() {
 }
 
 export async function authenticateAdmin(request, env) {
-  const { username, sessionSecret } = requireAuthConfiguration(env);
+  const { username, sessionSecret } = await loadAuthConfiguration(env);
   const token = readCookie(request, COOKIE_NAME);
   const [payloadValue, signatureValue] = token.split(".");
   if (!payloadValue || !signatureValue) throw new AuthError("Entre com suas credenciais para continuar.", 401);

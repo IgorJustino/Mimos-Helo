@@ -10,7 +10,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export async function onRequestPost({ request, env }) {
   try {
-    requireBindings(env, ["IMAGES"]);
+    requireBindings(env, ["DB", "IMAGES"]);
     await authenticateAdmin(request, env);
     const formData = await request.formData();
     const file = formData.get("image");
