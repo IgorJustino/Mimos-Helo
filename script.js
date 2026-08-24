@@ -15,320 +15,8 @@ const FINISH_DESCRIPTIONS = {
   "Holográfico confete": "Partículas delicadas e reluzentes para um efeito alegre."
 };
 
-const PARTY_CUSTOMIZATION_FIELDS = [
-  {
-    id: "themeReference",
-    label: "Tema ou referência do catálogo",
-    type: "text",
-    placeholder: "Ex.: Safari, referência da página 12",
-    required: true
-  },
-  {
-    id: "nameAndAge",
-    label: "Nome e idade para personalização",
-    type: "text",
-    placeholder: "Ex.: Helena, 5 anos",
-    required: true
-  },
-  {
-    id: "eventDate",
-    label: "Data do evento",
-    type: "date",
-    required: true
-  },
-  {
-    id: "notes",
-    label: "Observações ou preferências adicionais",
-    type: "textarea",
-    placeholder: "Ex.: cores preferidas, detalhes do tema ou mensagem especial",
-    required: false
-  }
-];
-
-let products = [
-  {
-    id: "reforma-luxo",
-    category: "cadernetas",
-    badge: "Mais escolhido",
-    meta: "Caderneta de saúde",
-    name: "Reforma luxo",
-    price: 70,
-    priceLabel: "R$ 70",
-    priceNote: "Pix/dinheiro",
-    image: "assets/images/reforma-luxo.jpeg",
-    alt: "Reforma luxo de duas cadernetas de saúde personalizadas",
-    description: "Capa nova e completa, mantendo o miolo original da caderneta do bebê.",
-    optionLabel: "Acabamento da capa",
-    options: ["Brilhante", "Fosco", "Holográfico caquinho", "Holográfico confete"],
-    customizationFields: [
-      {
-        id: "coverName",
-        label: "Nome para colocar na capa",
-        type: "text",
-        placeholder: "Ex.: João Gabriel",
-        required: true
-      },
-      {
-        id: "themeReference",
-        label: "Tema ou referência do catálogo",
-        type: "text",
-        placeholder: "Ex.: Ursinho príncipe, referência 1A22",
-        required: true
-      },
-      {
-        id: "wireColor",
-        label: "Preferência de cor do wire-o",
-        type: "select",
-        options: ["Sem preferência", "Branco", "Rosa", "Cobre"],
-        required: false
-      },
-      {
-        id: "notes",
-        label: "Observações ou preferências adicionais",
-        type: "textarea",
-        placeholder: "Ex.: detalhes de cor, nome do pingente ou outra preferência",
-        required: false
-      }
-    ],
-    customizationNotice: "A reforma troca a capa e preserva o miolo original da caderneta.",
-    details: [
-      "Capa dura personalizada com qualquer arte disponível no catálogo",
-      "Wire-o branco premium, com rosa ou cobre conforme disponibilidade",
-      "Elástico com passante, tassel ou pingente e divisórias com abas",
-      "Bolso canguru interno e folhas adicionais para consultas e anotações",
-      "Laminação brilhante, fosca ou holográfica",
-      "Cartão do SUS no mesmo tema como brinde"
-    ],
-    note: "Prazo estimado de 1 a 10 dias úteis, conforme a agenda. No cartão: R$ 75,00."
-  },
-  {
-    id: "cracha-inclusivo",
-    category: "identificacao",
-    badge: "Produção em 2 dias",
-    meta: "Identificação inclusiva",
-    name: "Crachá para autismo e outras necessidades",
-    shortName: "Crachá inclusivo",
-    price: 35,
-    priceLabel: "R$ 35",
-    priceNote: "cordão incluso",
-    image: "assets/images/cracha-autismo.jpeg",
-    alt: "Frente e verso de crachá de identificação para autismo",
-    description: "Polímero sublimado, mais grosso que PVC, resistente e à prova d’água.",
-    optionLabel: "Acabamento",
-    options: ["Brilhante", "Fosco", "Holográfico caquinho", "Holográfico confete"],
-    customizationFields: [
-      {
-        id: "fullName",
-        label: "Nome completo da pessoa",
-        type: "text",
-        placeholder: "Ex.: Lucas Gabriel da Silva",
-        required: true
-      },
-      {
-        id: "birthDate",
-        label: "Data de nascimento",
-        type: "date",
-        required: true
-      },
-      {
-        id: "responsibleName",
-        label: "Nome do responsável",
-        type: "text",
-        placeholder: "Ex.: Maria das Graças Silva",
-        required: true
-      },
-      {
-        id: "responsiblePhone",
-        label: "Telefone do responsável com DDD",
-        type: "tel",
-        placeholder: "Ex.: (61) 99999-8888",
-        required: true
-      },
-      {
-        id: "diagnosis",
-        label: "CID, diagnóstico ou laudo",
-        type: "text",
-        placeholder: "Ex.: CID 10: F84.0 — Transtorno do Espectro Autista",
-        required: true
-      },
-      {
-        id: "notes",
-        label: "Observações ou preferências adicionais",
-        type: "textarea",
-        placeholder: "Ex.: prefiro detalhes azuis ou gostaria de incluir uma mensagem",
-        required: false
-      }
-    ],
-    customizationNotice: "Após enviar o pedido pelo WhatsApp, mande também uma foto nítida, de preferência com fundo branco.",
-    details: [
-      "Inclui cordão de Autismo",
-      "Enviar nome completo e data de nascimento",
-      "Enviar nome e telefone de um responsável",
-      "Enviar CID ou laudo",
-      "Enviar foto nítida, preferencialmente com fundo branco",
-      "Produção em até 2 dias úteis após a confirmação",
-      "Crachás empresariais são normalmente produzidos em PVC",
-      "Para outras artes, envie o arquivo pronto para sublimação"
-    ],
-    note: "Pagamento de 50% antecipado para confirmar. Modelo padrão, sem QR Code ou campos extras."
-  },
-  {
-    id: "kit-classico",
-    category: "festas",
-    badge: "Pedido mínimo",
-    meta: "Papelaria para festas",
-    name: "Monte seu kit clássico",
-    price: 35,
-    priceLabel: "R$ 35",
-    priceNote: "kit 10 un. no Pix",
-    image: "assets/images/kit-classico.jpg",
-    alt: "Modelos e preços do kit clássico para festas",
-    description: "Caixinhas em papel offset fosco, com modelos à sua escolha e impressão em alta qualidade.",
-    optionLabel: "Tamanho do kit",
-    options: ["10 unidades — até 2 modelos", "15 unidades — até 3 modelos", "20 unidades — até 4 modelos"],
-    optionPrices: [35, 51, 66],
-    optionDescriptions: [
-      "Escolha até 2 modelos diferentes para o kit.",
-      "Escolha até 3 modelos diferentes para o kit.",
-      "Escolha até 4 modelos diferentes para o kit."
-    ],
-    customizationFields: PARTY_CUSTOMIZATION_FIELDS,
-    customizationNotice: "Personalizados não acompanham guloseimas, apliques 3D ou laços.",
-    details: [
-      "Escolha entre milk, sushi, cone, meia bala, coração e caixa alta",
-      "Pedido mínimo de 5 unidades de cada modelo",
-      "Impresso em papel offset fosco 180 g",
-      "Sem aplique 3D, laço ou guloseimas",
-      "Kit 15 unidades: R$ 51 no Pix",
-      "Kit 20 unidades: R$ 66 no Pix"
-    ],
-    note: "Valores no cartão e outras combinações estão no catálogo completo de festas."
-  },
-  {
-    id: "kit-luxo",
-    category: "festas",
-    badge: "Com laço e 3D",
-    meta: "Papelaria para festas",
-    name: "Monte seu kit luxo",
-    price: 50,
-    priceLabel: "R$ 50",
-    priceNote: "kit 10 un. no Pix",
-    image: "assets/images/kit-luxo.jpg",
-    alt: "Modelos e preços do kit luxo para festas",
-    description: "Caixinhas com aplique 3D e laço, personalizadas no tema da sua comemoração.",
-    optionLabel: "Tamanho do kit",
-    options: ["10 unidades — até 2 modelos", "15 unidades — até 3 modelos", "20 unidades — até 4 modelos"],
-    optionPrices: [50, 74, 98],
-    optionDescriptions: [
-      "Escolha até 2 modelos com aplique 3D e laço.",
-      "Escolha até 3 modelos com aplique 3D e laço.",
-      "Escolha até 4 modelos com aplique 3D e laço."
-    ],
-    customizationFields: PARTY_CUSTOMIZATION_FIELDS,
-    customizationNotice: "Personalizados não acompanham guloseimas. Confirme o tema antes da produção.",
-    details: [
-      "Escolha entre milk, sushi, cone, meia bala, coração, caixa alta, canudo e maletinha",
-      "Pedido mínimo de 5 unidades de cada modelo",
-      "Impresso em papel offset fosco 180 g",
-      "Inclui aplique 3D e laço",
-      "Kit 15 unidades: R$ 74 no Pix",
-      "Kit 20 unidades: R$ 98 no Pix"
-    ],
-    note: "Personalizados não acompanham guloseimas. Consulte os valores no cartão."
-  },
-  {
-    id: "kit-caixinhas",
-    category: "festas",
-    badge: "Kit completo",
-    meta: "Papelaria para festas",
-    name: "Kit caixinhas clássicas",
-    price: 65,
-    priceLabel: "R$ 65",
-    priceNote: "kit 1 no Pix",
-    image: "assets/images/kit-caixinhas.jpg",
-    alt: "Kits de caixinhas clássicas para festas",
-    description: "Combinações prontas de caixinhas com topos de docinhos como brinde.",
-    optionLabel: "Opção",
-    options: ["Kit 1 — 20 itens + 10 brindes", "Kit 2 — 40 itens + 15 brindes", "Kit 3 — 60 itens + 24 brindes"],
-    optionPrices: [65, 130, 190],
-    optionDescriptions: [
-      "20 caixinhas e 10 topos de docinhos como brinde.",
-      "40 caixinhas e 15 topos de docinhos como brinde.",
-      "60 caixinhas e 24 topos de docinhos como brinde."
-    ],
-    customizationFields: PARTY_CUSTOMIZATION_FIELDS,
-    customizationNotice: "A composição dos kits é fixa e os personalizados não acompanham guloseimas.",
-    details: [
-      "Kit 1: 20 caixinhas e 10 topos de docinhos",
-      "Kit 2: 40 caixinhas e 15 topos de docinhos",
-      "Kit 3: 60 caixinhas e 24 topos de docinhos",
-      "Impresso em papel offset fosco com alta qualidade",
-      "Sem aplique 3D ou laços",
-      "Os itens dos kits não podem ser alterados"
-    ],
-    note: "Personalizados não acompanham guloseimas. Consulte os valores no cartão."
-  },
-  {
-    id: "adicionais",
-    category: "acabamentos",
-    badge: "A partir de R$ 5",
-    meta: "Encadernação",
-    name: "Adicionais para personalizar",
-    price: 5,
-    priceLabel: "R$ 5",
-    priceNote: "a partir de",
-    image: "assets/images/adicionais.jpeg",
-    alt: "Lista de adicionais disponíveis para encadernações",
-    description: "Pequenos detalhes para deixar agendas, cadernetas e planners ainda mais especiais.",
-    optionLabel: "Adicional",
-    options: ["Tassel ou pingente", "Bolso canguru", "Divisórias", "Wire-o", "Laminação holográfica", "Cartão do SUS", "Chaveiro", "Passante"],
-    optionPrices: [5, 5, 8, 5, 10, 10, 5, 5],
-    optionDescriptions: [
-      "Pingente decorativo para combinar com o tema.",
-      "Bolso plástico transparente para guardar documentos.",
-      "Divisórias personalizadas com abas para organização.",
-      "Encadernação em branco, rosa ou cobre, conforme disponibilidade.",
-      "Efeito holográfico especial aplicado à capa.",
-      "Cartão personalizado no mesmo tema do produto.",
-      "Chaveiro polasseal personalizado para combinar.",
-      "Passante metálico decorativo para o elástico."
-    ],
-    customizationFields: [
-      {
-        id: "targetProduct",
-        label: "Em qual produto será aplicado?",
-        type: "text",
-        placeholder: "Ex.: reforma de caderneta, agenda ou planner",
-        required: true
-      },
-      {
-        id: "themeReference",
-        label: "Tema ou referência",
-        type: "text",
-        placeholder: "Ex.: mesmo tema da caderneta",
-        required: false
-      },
-      {
-        id: "notes",
-        label: "Observações ou preferência de cor",
-        type: "textarea",
-        placeholder: "Ex.: wire-o cobre ou tassel rosa",
-        required: false
-      }
-    ],
-    customizationNotice: "Cores e modelos dependem da disponibilidade no momento do pedido.",
-    details: [
-      "Tassel ou pingente: R$ 5",
-      "Bolso canguru: R$ 5",
-      "Divisórias personalizadas: R$ 8",
-      "Wire-o em branco, rosa ou cobre: R$ 5",
-      "Laminação holográfica: R$ 10",
-      "Cartão do SUS no mesmo tema: R$ 10",
-      "Chaveiro polasseal ou passante: R$ 5"
-    ],
-    note: "Consulte a disponibilidade das cores de wire-o."
-  }
-];
+let products = [];
+let catalogState = "loading";
 
 const productGrid = document.querySelector("#product-grid");
 const cartDrawer = document.querySelector(".cart-drawer");
@@ -389,6 +77,28 @@ function getUnitPrice(product, option) {
 }
 
 function renderProducts() {
+  if (catalogState === "loading") {
+    productGrid.innerHTML = `
+      <div class="catalog-empty-state catalog-loading-state" role="status">
+        <span class="catalog-loader" aria-hidden="true"></span>
+        <h3>Carregando o catálogo</h3>
+        <p>Buscando os produtos disponíveis no ateliê.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (catalogState === "error") {
+    productGrid.innerHTML = `
+      <div class="catalog-empty-state" role="alert">
+        <span aria-hidden="true">!</span>
+        <h3>Não foi possível abrir o catálogo</h3>
+        <p>Tente atualizar a página. Se preferir, fale conosco pelo WhatsApp para consultar os produtos.</p>
+      </div>
+    `;
+    return;
+  }
+
   if (!products.length) {
     productGrid.innerHTML = `
       <div class="catalog-empty-state">
@@ -406,8 +116,10 @@ function renderProducts() {
       return `
         <article class="product-card" data-product="${product.id}" data-category="${product.category}" ${hidden ? "hidden" : ""}>
           <div class="product-media">
-            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" loading="lazy" />
-            <span class="product-badge">${escapeHtml(product.badge)}</span>
+            ${product.image
+              ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" loading="lazy" />`
+              : `<div class="product-image-placeholder" aria-hidden="true">♡</div>`}
+            ${product.badge ? `<span class="product-badge">${escapeHtml(product.badge)}</span>` : ""}
           </div>
           <div class="product-body">
             <span class="product-meta">${escapeHtml(product.meta)}</span>
@@ -644,12 +356,13 @@ function getCustomizationDetails(product, item) {
 }
 
 function renderCart() {
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const availableItems = cart.filter((item) => getProduct(item.productId));
+  const itemCount = availableItems.reduce((sum, item) => sum + item.quantity, 0);
   document.querySelectorAll("[data-cart-count]").forEach((element) => {
     element.textContent = itemCount;
   });
 
-  if (!cart.length) {
+  if (!availableItems.length) {
     cartContent.innerHTML = `
       <div class="empty-cart">
         <div class="empty-cart-mark" aria-hidden="true">+</div>
@@ -663,7 +376,7 @@ function renderCart() {
   }
 
   let total = 0;
-  cartContent.innerHTML = cart
+  cartContent.innerHTML = availableItems
     .map((item, index) => {
       const product = getProduct(item.productId);
       if (!product) return "";
@@ -672,7 +385,9 @@ function renderCart() {
       total += unitPrice * item.quantity;
       return `
         <article class="cart-item">
-          <img src="${escapeHtml(product.image)}" alt="" />
+          ${product.image
+            ? `<img src="${escapeHtml(product.image)}" alt="" />`
+            : `<div class="cart-image-placeholder" aria-hidden="true">♡</div>`}
           <div>
             <h3>${escapeHtml(product.shortName || product.name)}</h3>
             <div class="cart-item-customization">
@@ -725,7 +440,9 @@ function openProductDialog(productId) {
   productDialogContent.innerHTML = `
     <div class="product-dialog-layout">
       <div class="product-dialog-media">
-        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" />
+        ${product.image
+          ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" />`
+          : `<div class="product-image-placeholder" aria-hidden="true">♡</div>`}
       </div>
       <div class="product-dialog-copy">
         <span class="eyebrow">${escapeHtml(product.meta)}</span>
@@ -796,19 +513,49 @@ function showToast(message) {
 }
 
 async function loadRemoteCatalog() {
-  if (!window.MimosCatalog) return;
+  if (!window.MimosCatalog) {
+    catalogState = "error";
+    renderProducts();
+    renderCart();
+    return;
+  }
 
   try {
     const result = await window.MimosCatalog.listPublishedProducts();
-    if (!result.configured) return;
-    if (!result.products.length) return;
+    if (!result.configured) throw new Error("O banco do catálogo não está configurado.");
     products = result.products;
+    catalogState = "ready";
     cart = cart.filter((item) => getProduct(item.productId));
     saveCart();
+    updateHeroProduct(products[0]);
     renderProducts();
     renderCart();
   } catch (error) {
-    console.warn("O catálogo online não pôde ser atualizado. Exibindo a versão local.", error);
+    catalogState = "error";
+    cart = [];
+    saveCart();
+    renderProducts();
+    renderCart();
+    console.warn("O catálogo online não pôde ser carregado.", error);
+  }
+}
+
+function updateHeroProduct(product) {
+  const visual = document.querySelector("[data-hero-product]");
+  if (!visual || !product) return;
+
+  const image = visual.querySelector("[data-hero-product-image]");
+  const placeholder = visual.querySelector("[data-hero-product-placeholder]");
+  const name = visual.querySelector("[data-hero-product-name]");
+  const price = visual.querySelector("[data-hero-product-price]");
+
+  name.textContent = product.name;
+  price.textContent = product.priceLabel;
+  if (product.image) {
+    image.src = product.image;
+    image.alt = product.alt || `Foto de ${product.name}`;
+    image.hidden = false;
+    placeholder.hidden = true;
   }
 }
 

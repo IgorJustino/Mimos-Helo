@@ -226,10 +226,6 @@ try {
   await delay(350);
   await screenshot("/tmp/mimoshelo-carrossel-desktop.png");
 
-  await evaluate("document.querySelector('#catalogos').scrollIntoView({block: 'start'})");
-  await delay(300);
-  await screenshot("/tmp/mimoshelo-catalogos-reviewed.png");
-
   const smartphoneSizes = [
     { width: 320, height: 568, label: "compacto" },
     { width: 360, height: 800, label: "padrao" },

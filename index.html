@@ -13,7 +13,6 @@
       property="og:description"
       content="Escolha seus personalizados e peça um orçamento direto pelo WhatsApp."
     />
-    <meta property="og:image" content="assets/images/reforma-luxo.jpeg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -70,7 +69,6 @@
 
         <nav class="main-nav" aria-label="Navegação principal">
           <a href="#produtos">Produtos</a>
-          <a href="#catalogos">Catálogos</a>
           <a href="#como-pedir">Como pedir</a>
           <a href="#entrega">Entrega</a>
         </nav>
@@ -118,22 +116,24 @@
             </div>
           </div>
 
-          <div class="hero-visual" aria-label="Apresentação da reforma luxo de caderneta">
+          <div class="hero-visual" data-hero-product aria-label="Produto em destaque do catálogo">
             <div class="wire-binding" aria-hidden="true">
               <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
             </div>
             <div class="hero-paper">
               <div class="hero-image-wrap">
                 <img
-                  src="assets/images/reforma-luxo.jpeg"
-                  alt="Apresentação da Reforma Luxo de caderneta com dois modelos personalizados"
+                  data-hero-product-image
+                  alt=""
                   width="1024"
                   height="1536"
+                  hidden
                 />
+                <div class="hero-image-placeholder" data-hero-product-placeholder aria-hidden="true">♡</div>
               </div>
               <div class="paper-label">
-                <small>Reforma luxo</small>
-                <strong>A partir de R$ 70</strong>
+                <small data-hero-product-name>Catálogo personalizado</small>
+                <strong data-hero-product-price>Escolha seu produto</strong>
               </div>
             </div>
             <div class="finish-swatches" aria-label="Acabamentos disponíveis">
@@ -166,60 +166,6 @@
           </div>
 
           <div class="product-grid" id="product-grid" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <section class="section catalog-section" id="catalogos" aria-labelledby="catalog-title">
-        <div class="container">
-          <div class="section-heading catalog-heading">
-            <span class="eyebrow">Mais opções</span>
-            <h2 id="catalog-title">Folheie os catálogos completos</h2>
-            <p>Veja os temas disponíveis e mande a referência escolhida junto com seu pedido.</p>
-          </div>
-
-          <div class="catalog-grid">
-            <article class="catalog-card catalog-card-wide">
-              <div class="catalog-preview catalog-preview-landscape">
-                <img
-                  src="assets/images/caderneta-modelos.jpg"
-                  alt="Prévia de artes para cadernetas de menino"
-                  loading="lazy"
-                  width="1400"
-                  height="788"
-                />
-              </div>
-              <div class="catalog-body">
-                <span class="catalog-kicker">98 páginas</span>
-                <h3>Artes para cadernetas</h3>
-                <p>Modelos infantis para escolher a capa que mais combina com o bebê.</p>
-                <div class="catalog-actions">
-                  <a class="button button-primary" href="assets/catalogs/catalogo-artes-cadernetas.pdf" target="_blank">Abrir catálogo</a>
-                  <a class="text-link" href="assets/catalogs/catalogo-artes-cadernetas.pdf" download>Baixar PDF</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="catalog-card">
-              <div class="catalog-preview catalog-preview-portrait">
-                <img
-                  src="assets/images/catalogo-festas-capa.jpg"
-                  alt="Capa do catálogo de papelaria personalizada para festas"
-                  loading="lazy"
-                  width="675"
-                  height="1200"
-                />
-              </div>
-              <div class="catalog-body">
-                <span class="catalog-kicker">74 páginas</span>
-                <h3>Kits personalizados para festas</h3>
-                <p>Caixinhas, lembrancinhas, centros de mesa, copos, tags e muito mais.</p>
-                <div class="catalog-actions">
-                  <a class="button button-secondary" href="assets/catalogs/catalogo-festas.pdf" target="_blank">Abrir catálogo</a>
-                  <a class="text-link" href="assets/catalogs/catalogo-festas.pdf" download>Baixar PDF</a>
-                </div>
-              </div>
-            </article>
-          </div>
         </div>
       </section>
 

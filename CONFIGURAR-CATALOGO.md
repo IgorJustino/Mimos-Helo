@@ -28,7 +28,7 @@ npx wrangler d1 create mimos-helo-catalogo
 npx wrangler d1 migrations apply mimos-helo-catalogo --remote
 ```
 
-Confirme a aplicação quando o terminal perguntar. As duas migrações criam a tabela e cadastram os seis produtos iniciais. Elas não apagam produtos existentes e podem ser executadas novamente com segurança pelo comando de migrações.
+Confirme a aplicação quando o terminal perguntar. As migrações criam as tabelas necessárias e preparam o catálogo. Depois, use o painel administrativo para cadastrar os produtos que devem aparecer no site.
 
 ## 3. Criar o espaço de fotos R2
 
@@ -92,7 +92,7 @@ O login possui limite de tentativas por endereço IP. A sessão dura oito horas,
 ## Solução de problemas
 
 - **“Configuração necessária”**: confira os bindings `DB` e `IMAGES`, aplique as migrações e faça novo deploy.
-- **O catálogo mostra os produtos antigos**: acesse `/api/health`; se `configured` não for `true`, a lista local de segurança está sendo usada.
+- **O catálogo não abre**: acesse `/api/health`; o campo `configured` precisa estar como `true` para o site consultar o D1.
 - **Usuário ou senha incorretos**: confira as credenciais e respeite letras maiúsculas e minúsculas.
 - **Muitas tentativas**: aguarde 15 minutos antes de tentar novamente.
 - **Imagem não envia**: use JPG, PNG ou WebP com até 5 MB e confira o binding `IMAGES`.

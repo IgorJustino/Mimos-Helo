@@ -64,7 +64,7 @@
         maximumFractionDigits: price % 1 === 0 ? 0 : 2
       }).format(price),
       priceNote: row.price_note || "",
-      image: row.image_url || "assets/images/reforma-luxo.jpeg",
+      image: row.image_url || "",
       imagePath: row.image_path || "",
       alt: row.image_alt || `Foto de ${row.name}`,
       description: row.description || "",
