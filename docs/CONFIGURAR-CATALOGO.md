@@ -7,7 +7,7 @@ O projeto usa serviços da Cloudflare que possuem faixa gratuita:
 - **R2**: guarda as fotos enviadas pelo painel;
 - **D1 privado**: guarda os produtos e as credenciais administrativas protegidas.
 
-O catálogo continua mostrando os seis produtos locais se a conexão com o D1 falhar. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
+Se o D1 estiver vazio, o catálogo mostra uma mensagem orientando o cliente a falar pelo WhatsApp. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
 
 ## 1. Entrar na Cloudflare pelo terminal
 
@@ -45,10 +45,10 @@ O bucket é privado. As imagens são entregues ao catálogo somente pela rota `/
 O projeto `mimos-helo` foi criado como **Direct Upload**. Para publicar uma alteração de código depois do commit, execute na pasta do projeto:
 
 ```bash
-npx wrangler pages deploy . --project-name mimos-helo --branch main
+npm run deploy
 ```
 
-A pasta `functions` é reconhecida automaticamente e vira a API do site. Alterações feitas pela proprietária no painel não precisam de commit nem deploy: são gravadas no D1 e aparecem no catálogo imediatamente.
+A pasta `public` contém o site e `functions` é reconhecida automaticamente como a API. Alterações feitas pela proprietária no painel não precisam de commit nem deploy: são gravadas no D1 e aparecem no catálogo imediatamente.
 
 ## 5. Conectar D1 e R2 ao Pages
 

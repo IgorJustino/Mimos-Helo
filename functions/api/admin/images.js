@@ -1,5 +1,5 @@
-import { authenticateAdmin } from "../../_lib/auth.js";
-import { errorResponse, json, requireBindings } from "../../_lib/http.js";
+import { authenticateAdmin } from "../../_shared/auth.js";
+import { errorResponse, json, requireBindings } from "../../_shared/http.js";
 
 const TYPES = new Map([
   ["image/jpeg", "jpg"],

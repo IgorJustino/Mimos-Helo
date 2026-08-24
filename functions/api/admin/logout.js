@@ -1,5 +1,5 @@
-import { clearAdminSession } from "../../_lib/auth.js";
-import { json } from "../../_lib/http.js";
+import { clearAdminSession } from "../../_shared/auth.js";
+import { json } from "../../_shared/http.js";
 
 export async function onRequestPost() {
   return json(

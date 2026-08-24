@@ -1,5 +1,5 @@
-import { authenticateAdmin } from "../../_lib/auth.js";
-import { errorResponse, json } from "../../_lib/http.js";
+import { authenticateAdmin } from "../../_shared/auth.js";
+import { errorResponse, json } from "../../_shared/http.js";
 
 export async function onRequestGet({ request, env }) {
   try {

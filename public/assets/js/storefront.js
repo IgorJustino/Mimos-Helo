@@ -1,13 +1,6 @@
 const WHATSAPP_NUMBER = "5561996697056";
 const CART_KEY = "mimos-helo-selection-v2";
 
-const guideSection = document.querySelector(".guide-section");
-const productsSection = document.querySelector("#produtos");
-
-if (guideSection && productsSection) {
-  productsSection.before(guideSection);
-}
-
 const FINISH_DESCRIPTIONS = {
   Brilhante: "Cores vibrantes, alto brilho e proteção contra desbotamento e desgaste.",
   Fosco: "Toque suave e aveludado, visual elegante e menos reflexos.",

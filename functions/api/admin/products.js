@@ -1,6 +1,6 @@
-import { authenticateAdmin } from "../../_lib/auth.js";
-import { errorResponse, json, readJson, requireBindings } from "../../_lib/http.js";
-import { listProducts, saveProduct } from "../../_lib/products.js";
+import { authenticateAdmin } from "../../_shared/auth.js";
+import { errorResponse, json, readJson, requireBindings } from "../../_shared/http.js";
+import { listProducts, saveProduct } from "../../_shared/product-repository.js";
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -19,7 +19,7 @@ export async function onRequestPost({ request, env }) {
     const input = await readJson(request);
     const { product, previousImagePath } = await saveProduct(env.DB, input);
     if (previousImagePath && previousImagePath !== product.image_path) {
-      await env.IMAGES.delete(previousImagePath);
+      await env.IMAGES.delete(previousImagePath).catch(() => {});
     }
     return json({ product }, { status: input.id ? 200 : 201 });
   } catch (error) {

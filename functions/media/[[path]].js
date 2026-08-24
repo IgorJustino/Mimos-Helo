@@ -1,4 +1,4 @@
-import { errorResponse, requireBindings } from "../_lib/http.js";
+import { errorResponse, requireBindings } from "../_shared/http.js";
 
 export async function onRequestGet({ env, params, request }) {
   try {

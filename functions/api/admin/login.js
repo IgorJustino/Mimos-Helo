@@ -1,5 +1,5 @@
-import { createAdminSession, verifyCredentials } from "../../_lib/auth.js";
-import { errorResponse, json, readJson, requireBindings } from "../../_lib/http.js";
+import { createAdminSession, verifyCredentials } from "../../_shared/auth.js";
+import { errorResponse, json, readJson, requireBindings } from "../../_shared/http.js";
 
 const WINDOW_SECONDS = 15 * 60;
 const MAX_ATTEMPTS = 8;

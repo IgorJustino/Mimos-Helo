@@ -1,0 +1,21 @@
+{
+  "name": "mimos-helo",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Catálogo online da Mimos Helo Personalizados",
+  "scripts": {
+    "dev": "wrangler pages dev public --port 4173",
+    "db:migrate:local": "wrangler d1 migrations apply mimos-helo-catalogo --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mimos-helo-catalogo --remote",
+    "db:seed:local": "wrangler d1 execute mimos-helo-catalogo --local --file database/fixtures/demo-products.sql",
+    "test": "npm run test:repository && npm run test:storefront && npm run test:admin",
+    "test:repository": "node tests/product-repository.mjs",
+    "test:storefront": "node tests/smoke.mjs",
+    "test:admin": "node tests/admin-smoke.mjs",
+    "deploy": "wrangler pages deploy public --project-name mimos-helo --branch main"
+  },
+  "devDependencies": {
+    "wrangler": "4.124.0"
+  }
+}

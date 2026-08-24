@@ -31,12 +31,24 @@ const EDITABLE_COLUMNS = [
   "sort_order"
 ];
 
-function arrayValue(value) {
-  return Array.isArray(value) ? value : [];
+const ALLOWED_CATEGORIES = new Set(["cadernetas", "identificacao", "festas", "acabamentos", "outros"]);
+
+function validationError(message) {
+  return Object.assign(new Error(message), { status: 400 });
 }
 
-function textValue(value, fallback = "") {
-  return typeof value === "string" ? value.trim() : fallback;
+function jsonValue(value, label, maxItems = 50) {
+  const items = Array.isArray(value) ? value : [];
+  if (items.length > maxItems) throw validationError(`${label} permite no máximo ${maxItems} itens.`);
+  const serialized = JSON.stringify(items);
+  if (serialized.length > 50000) throw validationError(`${label} excede o tamanho permitido.`);
+  return serialized;
+}
+
+function textValue(value, fallback = "", maxLength = 500, label = "Texto") {
+  const text = typeof value === "string" ? value.trim() : fallback;
+  if (text.length > maxLength) throw validationError(`${label} permite no máximo ${maxLength} caracteres.`);
+  return text;
 }
 
 export function decodeProduct(row) {
@@ -53,41 +65,50 @@ export function decodeProduct(row) {
 }
 
 export function prepareProduct(input) {
-  const name = textValue(input.name);
-  const slug = textValue(input.slug)
+  const name = textValue(input.name, "", 100, "Nome do produto");
+  const slug = textValue(input.slug, "", 120, "Identificador")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   const price = Number(input.price);
-  if (!name) throw Object.assign(new Error("Informe o nome do produto."), { status: 400 });
-  if (!slug) throw Object.assign(new Error("O produto precisa de um identificador válido."), { status: 400 });
+  if (!name) throw validationError("Informe o nome do produto.");
+  if (!slug) throw validationError("O produto precisa de um identificador válido.");
   if (!Number.isFinite(price) || price < 0) {
-    throw Object.assign(new Error("Informe um preço válido."), { status: 400 });
+    throw validationError("Informe um preço válido.");
+  }
+
+  const category = textValue(input.category, "outros", 40, "Categoria") || "outros";
+  if (!ALLOWED_CATEGORIES.has(category)) throw validationError("Escolha uma categoria válida.");
+
+  const imageUrl = textValue(input.image_url, "", 500, "Endereço da imagem");
+  const imagePath = textValue(input.image_path, "", 500, "Caminho da imagem");
+  if (imageUrl && (!imagePath || imageUrl !== `/media/${imagePath}`)) {
+    throw validationError("A foto do produto precisa ter sido enviada pelo painel.");
   }
 
   return {
     slug,
-    category: textValue(input.category, "outros") || "outros",
-    badge: textValue(input.badge),
-    meta: textValue(input.meta),
+    category,
+    badge: textValue(input.badge, "", 40, "Etiqueta"),
+    meta: textValue(input.meta, "", 50, "Tipo do produto"),
     name,
-    short_name: textValue(input.short_name),
+    short_name: textValue(input.short_name, "", 50, "Nome curto"),
     price,
-    price_note: textValue(input.price_note),
-    image_url: textValue(input.image_url),
-    image_path: textValue(input.image_path),
-    image_alt: textValue(input.image_alt),
-    description: textValue(input.description),
-    option_label: textValue(input.option_label, "Opção") || "Opção",
-    options: JSON.stringify(arrayValue(input.options)),
-    option_prices: JSON.stringify(arrayValue(input.option_prices)),
-    option_descriptions: JSON.stringify(arrayValue(input.option_descriptions)),
-    customization_fields: JSON.stringify(arrayValue(input.customization_fields)),
-    customization_notice: textValue(input.customization_notice),
-    details: JSON.stringify(arrayValue(input.details)),
-    note: textValue(input.note),
+    price_note: textValue(input.price_note, "", 50, "Observação do preço"),
+    image_url: imageUrl,
+    image_path: imagePath,
+    image_alt: textValue(input.image_alt, "", 160, "Descrição da imagem"),
+    description: textValue(input.description, "", 500, "Descrição"),
+    option_label: textValue(input.option_label, "Opção", 100, "Título das opções") || "Opção",
+    options: jsonValue(input.options, "Opções"),
+    option_prices: jsonValue(input.option_prices, "Preços das opções"),
+    option_descriptions: jsonValue(input.option_descriptions, "Descrições das opções"),
+    customization_fields: jsonValue(input.customization_fields, "Campos de personalização", 30),
+    customization_notice: textValue(input.customization_notice, "", 500, "Aviso de personalização"),
+    details: jsonValue(input.details, "Detalhes"),
+    note: textValue(input.note, "", 1000, "Observação final"),
     published: input.published === false ? 0 : 1,
     sort_order: Number.isFinite(Number(input.sort_order)) ? Number(input.sort_order) : 0
   };
@@ -108,7 +129,7 @@ export async function findProduct(db, id) {
 
 export async function saveProduct(db, input) {
   const row = prepareProduct(input);
-  const id = textValue(input.id) || crypto.randomUUID();
+  const id = textValue(input.id, "", 120, "Identificador interno") || crypto.randomUUID();
   const existing = await findProduct(db, id);
   const createdAt = existing?.created_at || new Date().toISOString();
   const updatedAt = new Date().toISOString();

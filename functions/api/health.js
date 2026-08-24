@@ -1,4 +1,4 @@
-import { json } from "../_lib/http.js";
+import { json } from "../_shared/http.js";
 
 export async function onRequestGet({ env }) {
   if (!env.DB || !env.IMAGES) {

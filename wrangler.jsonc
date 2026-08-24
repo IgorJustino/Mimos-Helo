@@ -3,13 +3,13 @@
   "name": "mimos-helo",
   "compatibility_date": "2026-08-20",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".",
+  "pages_build_output_dir": "public",
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mimos-helo-catalogo",
       "database_id": "6004f99a-6cd1-44d8-810d-5dcd6da5ef67",
-      "migrations_dir": "migrations"
+      "migrations_dir": "database/migrations"
     }
   ],
   "r2_buckets": [

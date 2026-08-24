@@ -318,7 +318,7 @@ try {
       category: 'outros',
       name: 'Produto vindo do painel',
       price: 29.9,
-      image_url: 'assets/images/reforma-luxo.jpeg',
+      image_url: 'assets/images/guide/laminacao-bopp.jpeg',
       options: ['Modelo A'],
       option_prices: [31.5],
       option_descriptions: ['Modelo de teste'],

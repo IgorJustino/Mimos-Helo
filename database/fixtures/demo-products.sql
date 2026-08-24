@@ -1,3 +1,10 @@
+-- Dados descartáveis para desenvolvimento e testes locais.
+-- Nunca execute este arquivo no banco de produção.
+BEGIN TRANSACTION;
+
+DELETE FROM products
+WHERE id IN ('reforma-luxo', 'cracha-inclusivo', 'kit-classico', 'kit-luxo', 'kit-caixinhas', 'adicionais');
+
 INSERT INTO products (
   id, slug, category, badge, meta, name, short_name, price, price_note,
   image_url, image_alt, description, option_label, options, option_prices,
@@ -6,7 +13,7 @@ INSERT INTO products (
 ) VALUES
 (
   'reforma-luxo', 'reforma-luxo', 'cadernetas', 'Mais escolhido', 'Caderneta de saúde',
-  'Reforma luxo', '', 70, 'Pix/dinheiro', 'assets/images/reforma-luxo.jpeg',
+  'Reforma luxo', '', 70, 'Pix/dinheiro', '',
   'Reforma luxo de duas cadernetas de saúde personalizadas',
   'Capa nova e completa, mantendo o miolo original da caderneta do bebê.',
   'Acabamento da capa',
@@ -21,7 +28,7 @@ INSERT INTO products (
 (
   'cracha-inclusivo', 'cracha-inclusivo', 'identificacao', 'Produção em 2 dias', 'Identificação inclusiva',
   'Crachá para autismo e outras necessidades', 'Crachá inclusivo', 35, 'cordão incluso',
-  'assets/images/cracha-autismo.jpeg', 'Frente e verso de crachá de identificação para autismo',
+  '', 'Frente e verso de crachá de identificação para autismo',
   'Polímero sublimado, mais grosso que PVC, resistente e à prova d’água.', 'Acabamento',
   '["Brilhante","Fosco","Holográfico caquinho","Holográfico confete"]', '[]',
   '["Cores vibrantes, alto brilho e proteção.","Toque suave, aveludado e elegante.","Fragmentos de brilho que mudam com a luz.","Partículas delicadas e reluzentes."]',
@@ -32,7 +39,7 @@ INSERT INTO products (
 ),
 (
   'kit-classico', 'kit-classico', 'festas', 'Pedido mínimo', 'Papelaria para festas',
-  'Monte seu kit clássico', '', 35, 'kit 10 un. no Pix', 'assets/images/kit-classico.jpg',
+  'Monte seu kit clássico', '', 35, 'kit 10 un. no Pix', '',
   'Modelos e preços do kit clássico para festas',
   'Caixinhas em papel offset fosco, com modelos à sua escolha e impressão em alta qualidade.',
   'Tamanho do kit',
@@ -46,7 +53,7 @@ INSERT INTO products (
 ),
 (
   'kit-luxo', 'kit-luxo', 'festas', 'Com laço e 3D', 'Papelaria para festas',
-  'Monte seu kit luxo', '', 50, 'kit 10 un. no Pix', 'assets/images/kit-luxo.jpg',
+  'Monte seu kit luxo', '', 50, 'kit 10 un. no Pix', '',
   'Modelos e preços do kit luxo para festas',
   'Caixinhas com aplique 3D e laço, personalizadas no tema da sua comemoração.',
   'Tamanho do kit',
@@ -60,7 +67,7 @@ INSERT INTO products (
 ),
 (
   'kit-caixinhas', 'kit-caixinhas', 'festas', 'Kit completo', 'Papelaria para festas',
-  'Kit caixinhas clássicas', '', 65, 'kit 1 no Pix', 'assets/images/kit-caixinhas.jpg',
+  'Kit caixinhas clássicas', '', 65, 'kit 1 no Pix', '',
   'Kits de caixinhas clássicas para festas',
   'Combinações prontas de caixinhas com topos de docinhos como brinde.', 'Opção',
   '["Kit 1 — 20 itens + 10 brindes","Kit 2 — 40 itens + 15 brindes","Kit 3 — 60 itens + 24 brindes"]',
@@ -73,7 +80,7 @@ INSERT INTO products (
 ),
 (
   'adicionais', 'adicionais', 'acabamentos', 'A partir de R$ 5', 'Encadernação',
-  'Adicionais para personalizar', '', 5, 'a partir de', 'assets/images/adicionais.jpeg',
+  'Adicionais para personalizar', '', 5, 'a partir de', '',
   'Lista de adicionais disponíveis para encadernações',
   'Pequenos detalhes para deixar agendas, cadernetas e planners ainda mais especiais.',
   'Adicional',
@@ -86,3 +93,5 @@ INSERT INTO products (
   'Consulte a disponibilidade das cores de wire-o.', 1, 60
 )
 ON CONFLICT(id) DO NOTHING;
+
+COMMIT;
