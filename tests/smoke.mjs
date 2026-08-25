@@ -102,6 +102,15 @@ try {
           return true;
         }
       });
+      if (location.search.includes('storage-blocked')) {
+        Object.defineProperty(Navigator.prototype, 'sendBeacon', {
+          configurable: true,
+          value() { throw new Error('sendBeacon bloqueado para teste'); }
+        });
+        Storage.prototype.setItem = function setItemBlocked() {
+          throw new Error('sessionStorage bloqueado para teste');
+        };
+      }
     `
   });
   await command("Emulation.setDeviceMetricsOverride", {
@@ -363,6 +372,14 @@ try {
       dynamicCatalogState.price === 31.5 &&
       dynamicCatalogState.fieldLabel === "Nome",
     `Os dados dinâmicos do painel não foram convertidos corretamente: ${JSON.stringify(dynamicCatalogState)}`
+  );
+
+  await evaluate("sessionStorage.clear()");
+  await command("Page.navigate", { url: `${siteUrl}/?storage-blocked=1` });
+  await delay(1800);
+  assert(
+    (await evaluate("document.querySelectorAll('.product-card').length")) === 6,
+    "O catálogo falhou quando o navegador bloqueou telemetria e sessionStorage."
   );
 
   assert(browserErrors.length === 0, `Erros no navegador: ${browserErrors.join('; ')}`);

@@ -46,22 +46,35 @@ function loadTelemetrySession() {
 const telemetrySession = loadTelemetrySession();
 
 function saveTelemetrySession() {
-  sessionStorage.setItem(TELEMETRY_SESSION_KEY, JSON.stringify(telemetrySession));
+  try {
+    sessionStorage.setItem(TELEMETRY_SESSION_KEY, JSON.stringify(telemetrySession));
+  } catch {
+    // Métricas nunca podem interromper a experiência de compra.
+  }
 }
 
 function sendTelemetry(eventName, productSlugs = []) {
   const payload = JSON.stringify({ eventName, productSlugs });
-  if (typeof navigator.sendBeacon === "function") {
-    const accepted = navigator.sendBeacon("/api/telemetry", new Blob([payload], { type: "application/json" }));
-    if (accepted) return;
+  try {
+    if (typeof navigator.sendBeacon === "function") {
+      const accepted = navigator.sendBeacon("/api/telemetry", new Blob([payload], { type: "application/json" }));
+      if (accepted) return;
+    }
+  } catch {
+    // Alguns navegadores e bloqueadores desativam sendBeacon.
   }
-  fetch("/api/telemetry", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: payload,
-    keepalive: true
-  }).catch(() => {});
+
+  try {
+    fetch("/api/telemetry", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true
+    }).catch(() => {});
+  } catch {
+    // Telemetria é opcional e falha silenciosamente.
+  }
 }
 
 function trackCatalogView() {
@@ -104,7 +117,11 @@ function loadCart() {
 }
 
 function saveCart() {
-  sessionStorage.setItem(CART_KEY, JSON.stringify(cart));
+  try {
+    sessionStorage.setItem(CART_KEY, JSON.stringify(cart));
+  } catch {
+    // O carrinho continua funcional em memória quando o armazenamento é bloqueado.
+  }
 }
 
 function getProduct(productId) {
