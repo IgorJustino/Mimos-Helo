@@ -90,6 +90,20 @@ async function screenshot(path) {
 try {
   await command("Page.enable");
   await command("Runtime.enable");
+  await command("Page.addScriptToEvaluateOnNewDocument", {
+    source: `
+      window.__telemetryEvents = [];
+      Object.defineProperty(Navigator.prototype, 'sendBeacon', {
+        configurable: true,
+        value(url, body) {
+          Promise.resolve(body?.text?.()).then((payload) => {
+            window.__telemetryEvents.push({ url, payload: JSON.parse(payload || '{}') });
+          });
+          return true;
+        }
+      });
+    `
+  });
   await command("Emulation.setDeviceMetricsOverride", {
     width: 1440,
     height: 1000,
@@ -213,6 +227,17 @@ try {
   await evaluate("document.querySelector('[data-show-product=\"kit-classico\"]').click()");
   assert(await evaluate("document.querySelector('#product-dialog').open"), "A janela de detalhes não abriu.");
   await evaluate("document.querySelector('#product-dialog').close()");
+
+  await delay(120);
+  const telemetry = await evaluate("window.__telemetryEvents");
+  const telemetryNames = telemetry.map((item) => item.payload.eventName);
+  assert(telemetryNames.filter((name) => name === "catalog_view").length === 1, "A visita ao catálogo não foi registrada uma única vez.");
+  assert(telemetryNames.filter((name) => name === "cart_add").length === 1, "Adicionar ou editar o carrinho gerou telemetria incorreta.");
+  assert(telemetryNames.filter((name) => name === "whatsapp_click").length === 1, "O clique no WhatsApp não foi registrado.");
+  assert(
+    !JSON.stringify(telemetry).includes("Lucas Gabriel") && !JSON.stringify(telemetry).includes("99999-8888"),
+    "Dados pessoais foram enviados na telemetria."
+  );
 
   await evaluate(`
     document.documentElement.style.scrollBehavior = 'auto';

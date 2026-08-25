@@ -9,8 +9,9 @@
     "db:migrate:local": "wrangler d1 migrations apply mimos-helo-catalogo --local",
     "db:migrate:remote": "wrangler d1 migrations apply mimos-helo-catalogo --remote",
     "db:seed:local": "wrangler d1 execute mimos-helo-catalogo --local --file database/fixtures/demo-products.sql",
-    "test": "npm run test:repository && npm run test:storefront && npm run test:admin",
+    "test": "npm run test:repository && npm run test:infrastructure && npm run test:storefront && npm run test:admin",
     "test:repository": "node tests/product-repository.mjs",
+    "test:infrastructure": "node tests/infrastructure.mjs",
     "test:storefront": "node tests/smoke.mjs",
     "test:admin": "node tests/admin-smoke.mjs",
     "deploy": "wrangler pages deploy public --project-name mimos-helo --branch main"

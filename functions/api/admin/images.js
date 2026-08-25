@@ -23,7 +23,7 @@ export async function onRequestPost({ request, env }) {
       throw Object.assign(new Error("A imagem deve ter no máximo 5 MB."), { status: 413 });
     }
 
-    const path = `catalogo/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+    const path = `pending/${Date.now()}-${crypto.randomUUID()}.${extension}`;
     await env.IMAGES.put(path, file.stream(), {
       httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" },
       customMetadata: { originalName: String(file.name || "produto") }

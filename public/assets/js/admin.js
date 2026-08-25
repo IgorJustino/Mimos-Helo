@@ -28,6 +28,10 @@
   const imageFileInput = productForm.querySelector('[name="imageFile"]');
   const toast = document.querySelector("[data-admin-toast]");
   const saveStatus = document.querySelector("[data-save-status]");
+  const analyticsPanel = document.querySelector("[data-analytics-panel]");
+  const analyticsRefresh = document.querySelector("[data-refresh-analytics]");
+  const analyticsConversion = document.querySelector("[data-analytics-conversion]");
+  const analyticsHighlight = document.querySelector("[data-analytics-highlight]");
 
   const state = {
     products: [],
@@ -61,6 +65,48 @@
       style: "currency",
       currency: "BRL"
     }).format(Number(value || 0));
+  }
+
+  function formatCount(value) {
+    return new Intl.NumberFormat("pt-BR").format(Number(value || 0));
+  }
+
+  function renderAnalytics(summary) {
+    const totals = summary?.totals || {};
+    analyticsPanel.querySelectorAll("[data-analytics-value]").forEach((element) => {
+      element.textContent = formatCount(totals[element.dataset.analyticsValue]);
+    });
+
+    const catalogViews = Number(totals.catalog_view || 0);
+    const whatsappClicks = Number(totals.whatsapp_click || 0);
+    const conversion = catalogViews ? (whatsappClicks / catalogViews) * 100 : 0;
+    analyticsConversion.textContent = `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(conversion)}%`;
+
+    const featured = summary?.products?.[0];
+    if (!featured) {
+      analyticsHighlight.textContent = "Os primeiros resultados aparecerão aqui.";
+    } else if (featured.whatsappClicks) {
+      analyticsHighlight.textContent = `Mais conversas: ${featured.name} · ${formatCount(featured.whatsappClicks)} clique${featured.whatsappClicks === 1 ? "" : "s"}`;
+    } else if (featured.cartAdds) {
+      analyticsHighlight.textContent = `Mais adicionado: ${featured.name} · ${formatCount(featured.cartAdds)} adiç${featured.cartAdds === 1 ? "ão" : "ões"}`;
+    } else {
+      analyticsHighlight.textContent = `Mais visto: ${featured.name} · ${formatCount(featured.productViews)} visualizaç${featured.productViews === 1 ? "ão" : "ões"}`;
+    }
+  }
+
+  async function loadAnalytics() {
+    analyticsPanel.setAttribute("aria-busy", "true");
+    analyticsRefresh.disabled = true;
+    analyticsRefresh.classList.add("is-loading");
+    try {
+      renderAnalytics(await catalog.getAnalyticsSummary(30));
+    } catch {
+      analyticsHighlight.textContent = "Não foi possível atualizar as métricas agora.";
+    } finally {
+      analyticsPanel.removeAttribute("aria-busy");
+      analyticsRefresh.disabled = false;
+      analyticsRefresh.classList.remove("is-loading");
+    }
   }
 
   function slugify(value) {
@@ -530,6 +576,7 @@
     state.currentUser = user;
     adminEmail.textContent = user.email || "Administradora";
     showView("workspace");
+    loadAnalytics();
 
     try {
       state.products = await catalog.listAllProducts();
@@ -596,6 +643,7 @@
     button.addEventListener("click", () => openProductEditor());
   });
   searchInput.addEventListener("input", renderProductList);
+  analyticsRefresh.addEventListener("click", loadAnalytics);
   productList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-edit-product]");
     if (!button) return;

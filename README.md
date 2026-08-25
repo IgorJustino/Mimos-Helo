@@ -6,7 +6,7 @@ Catálogo responsivo da Mimos Helo, com gestão de produtos, personalização do
 
 O catálogo público carrega todos os produtos diretamente do Cloudflare D1 e as fotos do R2. A proprietária administra produtos, fotos, preços, opções e campos de personalização em `/admin`, sem editar código. O acesso administrativo usa credenciais armazenadas em uma tabela privada, senha protegida por hash e uma sessão em cookie seguro.
 
-O banco armazena somente informações dos produtos. Os dados preenchidos pelos compradores permanecem na sessão do navegador e são usados para montar a mensagem do WhatsApp.
+O banco armazena informações dos produtos e contagens anônimas do funil. Os dados preenchidos pelos compradores permanecem na sessão do navegador e são usados para montar a mensagem do WhatsApp; nome, telefone e personalizações não entram nas métricas.
 
 Veja a [arquitetura](docs/ARQUITETURA.md) e o [passo a passo da Cloudflare](docs/CONFIGURAR-CATALOGO.md).
 
@@ -27,6 +27,7 @@ Para iniciar, execute `npm run dev` e abra `http://localhost:4173`.
 - Cadastre e altere todos os produtos pela área administrativa em `/admin`.
 - O número do WhatsApp fica em `public/assets/js/storefront.js`.
 - As fotos enviadas pelo painel ficam no Cloudflare R2.
+- O painel mostra o caminho entre visita, abertura de produto, seleção e clique no WhatsApp.
 
 Os dados preenchidos na personalização ficam somente na sessão atual do navegador e são utilizados para montar a mensagem enviada ao WhatsApp.
 

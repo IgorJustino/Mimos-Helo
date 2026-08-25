@@ -167,6 +167,11 @@
     return requestJson("/api/admin/images", { method: "POST", body });
   }
 
+  async function getAnalyticsSummary(days = 30) {
+    const period = Math.min(90, Math.max(1, Number(days) || 30));
+    return requestJson(`/api/admin/analytics?days=${period}`, { cache: "no-store" });
+  }
+
   global.MimosCatalog = {
     loadConfiguration,
     listPublishedProducts,
@@ -178,6 +183,7 @@
     saveProduct,
     deleteProduct,
     uploadProductImage,
+    getAnalyticsSummary,
     normalizeProduct
   };
 })(window);

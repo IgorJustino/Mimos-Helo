@@ -119,7 +119,14 @@ const cloudflareApiMock = `
       if (url.pathname === '/api/admin/images' && options.method === 'POST') {
         const image = options.body.get('image');
         window.__uploadedImage = { name: image.name, type: image.type, size: image.size };
-        return json({ path: 'catalogo/teste.webp', publicUrl: 'assets/images/guide/laminacao-bopp.jpeg' }, 201);
+        return json({ path: 'pending/teste.webp', publicUrl: 'assets/images/guide/laminacao-bopp.jpeg' }, 201);
+      }
+      if (url.pathname === '/api/admin/analytics') {
+        return json({
+          periodDays: 30,
+          totals: { catalog_view: 100, product_view: 62, cart_add: 18, whatsapp_click: 5 },
+          products: [{ slug: 'produto-teste', name: 'Produto de teste', productViews: 42, cartAdds: 12, whatsappClicks: 4 }]
+        });
       }
       if (url.pathname === '/api/admin/products' && (!options.method || options.method === 'GET')) {
         return json({ products });
@@ -160,6 +167,9 @@ try {
   assert(!(await evaluate("document.querySelector('[data-admin-workspace]').hidden")), "O painel autenticado não abriu.");
   assert((await evaluate("document.querySelectorAll('.admin-product-card').length")) === 1, "A lista de produtos do painel não carregou.");
   assert((await evaluate("document.querySelector('[name=\"name\"]').value")) === "Produto de teste", "O editor não recebeu os dados do produto.");
+  assert((await evaluate("document.querySelector('[data-analytics-value=\"catalog_view\"]').textContent")) === "100", "As visitas do funil não carregaram.");
+  assert((await evaluate("document.querySelector('[data-analytics-conversion]').textContent")) === "5%", "A conversão do funil foi calculada incorretamente.");
+  assert((await evaluate("document.querySelector('[data-analytics-highlight]').textContent"))?.includes("Produto de teste"), "O destaque do funil não carregou.");
 
   await command("DOM.enable");
   const { root } = await command("DOM.getDocument");
@@ -202,7 +212,7 @@ try {
   await screenshot("/tmp/mimoshelo-admin-mobile.png");
 
   assert(browserErrors.length === 0, `Erros no painel: ${browserErrors.join("; ")}`);
-  console.log("Painel aprovado: autenticação, listagem, edição, opções e layout mobile.");
+  console.log("Painel aprovado: autenticação, métricas, edição, opções e layout mobile.");
 } finally {
   socket.close();
   const browserExited = new Promise((resolve) => browser.once("exit", resolve));

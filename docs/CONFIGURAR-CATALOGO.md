@@ -5,7 +5,7 @@ O projeto usa serviços da Cloudflare que possuem faixa gratuita:
 - **Pages + Functions**: hospeda o site e a API;
 - **D1**: guarda produtos, preços e opções;
 - **R2**: guarda as fotos enviadas pelo painel;
-- **D1 privado**: guarda os produtos e as credenciais administrativas protegidas.
+- **D1 privado**: guarda credenciais administrativas e contagens anônimas do funil.
 
 Se o D1 estiver vazio, o catálogo mostra uma mensagem orientando o cliente a falar pelo WhatsApp. Dados preenchidos pelos compradores permanecem no navegador e seguem somente na mensagem do WhatsApp.
 
@@ -36,9 +36,16 @@ Execute:
 
 ```bash
 npx wrangler r2 bucket create mimos-helo-imagens
+npx wrangler r2 bucket lifecycle add mimos-helo-imagens delete-pending-uploads pending/ --expire-days 1
 ```
 
 O bucket é privado. As imagens são entregues ao catálogo somente pela rota `/media`, que aplica cache e não expõe credenciais.
+
+A regra `delete-pending-uploads` apaga depois de um dia somente uploads temporários que não chegaram a ser vinculados a um produto. O prefixo permanente `catalogo/` não é afetado. Para conferir:
+
+```bash
+npx wrangler r2 bucket lifecycle list mimos-helo-imagens
+```
 
 ## 4. Publicar no Cloudflare Pages
 
@@ -88,6 +95,12 @@ As credenciais ficam na tabela privada `admin_credentials` do D1. Ela não possu
 Para trocar a senha, gere um novo hash e atualize essa linha pela ferramenta D1. Nunca coloque a senha original, o hash ou a chave de sessão no Git.
 
 O login possui limite de tentativas por endereço IP. A sessão dura oito horas, usa cookie `HttpOnly`, `Secure` e `SameSite=Strict`.
+
+## 8. Acompanhar o caminho até o WhatsApp
+
+Depois do login, o painel mostra as visitas, aberturas de produtos, adições à seleção e cliques no WhatsApp dos últimos 30 dias. A taxa de conversão é calculada como cliques no WhatsApp divididos por visitas ao catálogo.
+
+As métricas não armazenam nome, telefone, personalizações ou o texto do pedido. Elas começam em zero e passam a contar somente depois da publicação desta versão.
 
 ## Solução de problemas
 

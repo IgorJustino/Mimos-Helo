@@ -27,6 +27,29 @@ export async function readJson(request) {
   }
 }
 
+export async function readLimitedJson(request, maxBytes = 2048) {
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw Object.assign(new Error("Envie os dados em formato JSON."), { status: 415 });
+  }
+
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (declaredLength > maxBytes) {
+    throw Object.assign(new Error("Os dados enviados excedem o tamanho permitido."), { status: 413 });
+  }
+
+  const text = await request.text();
+  if (new TextEncoder().encode(text).byteLength > maxBytes) {
+    throw Object.assign(new Error("Os dados enviados excedem o tamanho permitido."), { status: 413 });
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw Object.assign(new Error("Os dados enviados não são válidos."), { status: 400 });
+  }
+}
+
 export function requireBindings(env, names) {
   const missing = names.filter((name) => !env[name]);
   if (missing.length) {

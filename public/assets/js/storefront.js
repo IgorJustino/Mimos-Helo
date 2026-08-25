@@ -1,5 +1,6 @@
 const WHATSAPP_NUMBER = "5561996697056";
 const CART_KEY = "mimos-helo-selection-v2";
+const TELEMETRY_SESSION_KEY = "mimos-helo-telemetry-v1";
 
 const FINISH_DESCRIPTIONS = {
   Brilhante: "Cores vibrantes, alto brilho e proteção contra desbotamento e desgaste.",
@@ -29,6 +30,53 @@ let lastFocusedElement = null;
 let customizationTrigger = null;
 let editingCartIndex = null;
 let toastTimer;
+
+function loadTelemetrySession() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(TELEMETRY_SESSION_KEY));
+    return {
+      catalogView: Boolean(saved?.catalogView),
+      productViews: Array.isArray(saved?.productViews) ? saved.productViews : []
+    };
+  } catch {
+    return { catalogView: false, productViews: [] };
+  }
+}
+
+const telemetrySession = loadTelemetrySession();
+
+function saveTelemetrySession() {
+  sessionStorage.setItem(TELEMETRY_SESSION_KEY, JSON.stringify(telemetrySession));
+}
+
+function sendTelemetry(eventName, productSlugs = []) {
+  const payload = JSON.stringify({ eventName, productSlugs });
+  if (typeof navigator.sendBeacon === "function") {
+    const accepted = navigator.sendBeacon("/api/telemetry", new Blob([payload], { type: "application/json" }));
+    if (accepted) return;
+  }
+  fetch("/api/telemetry", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true
+  }).catch(() => {});
+}
+
+function trackCatalogView() {
+  if (telemetrySession.catalogView) return;
+  telemetrySession.catalogView = true;
+  saveTelemetrySession();
+  sendTelemetry("catalog_view");
+}
+
+function trackProductView(product) {
+  if (!product?.slug || telemetrySession.productViews.includes(product.slug)) return;
+  telemetrySession.productViews.push(product.slug);
+  saveTelemetrySession();
+  sendTelemetry("product_view", [product.slug]);
+}
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("pt-BR", {
@@ -197,6 +245,7 @@ function renderCustomizationField(field, currentValue = "") {
 function openCustomizationDialog(productId, cartIndex = null) {
   const product = getProduct(productId);
   if (!product) return;
+  trackProductView(product);
 
   const existingItem = cartIndex === null ? null : cart[cartIndex];
   const selectedOption = existingItem?.option || product.options?.[0] || null;
@@ -317,6 +366,7 @@ function saveCustomization(event) {
 
   saveCart();
   renderCart();
+  if (!wasEditing) sendTelemetry("cart_add", [product.slug]);
   editingCartIndex = null;
   closeCustomizationDialog();
   showToast(`${product.shortName || product.name} ${wasEditing ? "atualizado" : "adicionado à seleção"}.`);
@@ -429,6 +479,7 @@ function closeCart() {
 function openProductDialog(productId) {
   const product = getProduct(productId);
   if (!product) return;
+  trackProductView(product);
 
   productDialogContent.innerHTML = `
     <div class="product-dialog-layout">
@@ -466,6 +517,9 @@ function openLightbox(source, alt) {
 
 function sendToWhatsApp() {
   if (!cart.length) return;
+
+  const productSlugs = [...new Set(cart.map((item) => getProduct(item.productId)?.slug).filter(Boolean))];
+  sendTelemetry("whatsapp_click", productSlugs);
 
   let total = 0;
   const lines = cart.map((item, index) => {
@@ -523,6 +577,7 @@ async function loadRemoteCatalog() {
     updateHeroProduct(products[0]);
     renderProducts();
     renderCart();
+    trackCatalogView();
   } catch (error) {
     catalogState = "error";
     cart = [];
