@@ -4,7 +4,7 @@ import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 const siteUrl = process.env.SITE_URL || "http://127.0.0.1:4173";
 const debuggingPort = 9334;
 const profileDirectory = await mkdtemp("/tmp/mimoshelo-admin-chrome-");
-const sampleImagePath = new URL("../public/assets/images/guide/laminacao-bopp.jpeg", import.meta.url).pathname;
+const sampleImagePath = new URL("./fixtures/sample-product.jpeg", import.meta.url).pathname;
 const sampleImageSize = (await stat(sampleImagePath)).size;
 const browser = spawn(
   "/usr/bin/google-chrome",
@@ -84,7 +84,7 @@ const cloudflareApiMock = `
     let products = [{
       id: 'produto-teste', slug: 'produto-teste', category: 'cadernetas', badge: 'Destaque',
       meta: 'Caderneta', name: 'Produto de teste', short_name: '', price: 42, price_note: 'no Pix',
-      image_url: 'assets/images/guide/laminacao-bopp.jpeg', image_path: '', image_alt: 'Produto de teste',
+      image_url: 'assets/images/brand/mimos-helo-monogram.png', image_path: '', image_alt: 'Produto de teste',
       description: 'Descrição do produto de teste.', option_label: 'Acabamento',
       options: ['Brilhante'], option_prices: [42], option_descriptions: ['Acabamento brilhante'],
       customization_fields: [], customization_notice: '', details: ['Feito sob encomenda'], note: '',
@@ -119,7 +119,7 @@ const cloudflareApiMock = `
       if (url.pathname === '/api/admin/images' && options.method === 'POST') {
         const image = options.body.get('image');
         window.__uploadedImage = { name: image.name, type: image.type, size: image.size };
-        return json({ path: 'pending/teste.webp', publicUrl: 'assets/images/guide/laminacao-bopp.jpeg' }, 201);
+        return json({ path: 'pending/teste.webp', publicUrl: 'assets/images/brand/mimos-helo-monogram.png' }, 201);
       }
       if (url.pathname === '/api/admin/analytics') {
         return json({

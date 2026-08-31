@@ -158,25 +158,8 @@ try {
   );
 
   assert(
-    (await evaluate("document.querySelectorAll('[data-carousel-slide]').length")) === 5,
-    "Os cinco itens do carrossel não foram renderizados."
-  );
-  assert(
-    await evaluate(`
-      document.querySelector('.hero').nextElementSibling === document.querySelector('.guide-section') &&
-      document.querySelector('.guide-section').nextElementSibling === document.querySelector('#produtos')
-    `),
-    "O carrossel não está entre a apresentação inicial e os produtos."
-  );
-  await evaluate("document.querySelector('[data-carousel-tab=\"2\"]').click()");
-  assert(
-    (await evaluate("document.querySelector('.carousel-slide.is-active').dataset.carouselSlide")) === "2",
-    "A navegação por assunto do carrossel não atualizou o cartão."
-  );
-  await evaluate("document.querySelector('[data-carousel-next]').click()");
-  assert(
-    (await evaluate("document.querySelector('.carousel-slide.is-active').dataset.carouselSlide")) === "3",
-    "O controle de próximo do carrossel não funcionou."
+    await evaluate("!document.querySelector('[data-feature-carousel]') && document.querySelector('.hero').nextElementSibling === document.querySelector('#produtos')"),
+    "O carrossel ainda existe ou os produtos não aparecem logo após a apresentação."
   );
 
   const assetFailures = await evaluate(`Promise.all(
@@ -331,16 +314,11 @@ try {
   );
 
   await evaluate(`
-    document.documentElement.style.scrollBehavior = 'auto';
-    document.querySelector('[data-carousel-tab="1"]').click();
     document.querySelector('[data-open-cart]').click();
     document.querySelector('[data-cart-remove]')?.click();
     document.querySelector('[data-close-cart]').click();
     document.querySelector('#toast').classList.remove('is-visible');
-    document.querySelector('[data-feature-carousel]').scrollIntoView({block: 'start'});
   `);
-  await delay(350);
-  await screenshot("/tmp/mimoshelo-carrossel-desktop.png");
 
   const smartphoneSizes = [
     { width: 320, height: 568, label: "compacto" },
@@ -435,10 +413,6 @@ try {
   await delay(180);
   await screenshot("/tmp/mimoshelo-produtos-mobile.png");
 
-  await evaluate("document.querySelector('[data-feature-carousel]').scrollIntoView({block: 'start'})");
-  await delay(350);
-  await screenshot("/tmp/mimoshelo-carrossel-mobile.png");
-
   const dynamicCatalogState = await evaluate(`(() => {
     const product = window.MimosCatalog.normalizeProduct({
       id: 'produto-dinamico',
@@ -446,7 +420,7 @@ try {
       category: 'outros',
       name: 'Produto vindo do painel',
       price: 29.9,
-      image_url: 'assets/images/guide/laminacao-bopp.jpeg',
+      image_url: 'assets/images/brand/mimos-helo-monogram.png',
       options: ['Modelo A'],
       option_prices: [31.5],
       option_descriptions: ['Modelo de teste'],
@@ -477,7 +451,7 @@ try {
   );
 
   assert(browserErrors.length === 0, `Erros no navegador: ${browserErrors.join('; ')}`);
-  console.log("Smoke test aprovado: catálogo dinâmico, personalização, edição, carrossel, assets, orçamento e WhatsApp.");
+  console.log("Smoke test aprovado: catálogo dinâmico, personalização, edição, assets, orçamento e WhatsApp.");
 } finally {
   socket.close();
   const browserExited = new Promise((resolve) => browser.once("exit", resolve));

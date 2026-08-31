@@ -57,7 +57,6 @@ public/                         frontend publicado
   assets/css/admin.css          estilos exclusivos do painel
   assets/js/                    catálogo, carrinho, painel e cliente da API
   assets/images/brand/          marcas oficiais e imagem de compartilhamento
-  assets/images/guide/          imagens institucionais do guia
 functions/                      backend do Cloudflare Pages
   _shared/                      autenticação, HTTP, D1, R2 e métricas
   api/                          rotas públicas e administrativas
@@ -90,7 +89,6 @@ O código da vitrine é encapsulado em uma IIFE. Estado do catálogo, carrinho e
 
 - layout responsivo para desktop e smartphones;
 - hero institucional com o monograma oficial;
-- carrossel informativo acima da seção de produtos;
 - busca por produto, descrição, opções, detalhes e categoria;
 - atalhos e filtros por categoria com compatibilidade para categorias legadas;
 - detalhes do produto em modal;
@@ -99,7 +97,6 @@ O código da vitrine é encapsulado em uma IIFE. Estado do catálogo, carrinho e
 - carrinho/seleção com quantidades e edição da personalização;
 - carrinho em formato de folha de orçamento, com imagem, preço, detalhes, ações alinhadas e resumo fixo;
 - mensagem de WhatsApp com itens, opções, personalizações e subtotal de referência;
-- lightbox para ampliar imagens do guia;
 - estados de carregamento, catálogo vazio e erro de conexão;
 - navegação por teclado, foco visível e adaptação mobile.
 
@@ -256,7 +253,7 @@ Direção oficial atual:
 - `storefront.css` não contém mais a camada visual anterior nem seletores sem uso;
 - `admin.css` é independente da vitrine e mantém apenas os componentes do painel;
 - em 31/08/2026, a limpeza reduziu `storefront.css` de 3.623 para menos de 700 linhas e `admin.css` de 1.536 para menos de 350 linhas;
-- a quantidade de funções de gradiente caiu de 36 para 5, preservando apenas placeholder, legibilidade sobre imagens, encadernação e assinatura da marca.
+- a quantidade de funções de gradiente caiu de 36 para 4, preservando apenas placeholder, legibilidade sobre produtos, encadernação e assinatura da marca.
 
 Arquivos de marca publicados:
 
@@ -264,7 +261,7 @@ Arquivos de marca publicados:
 - `public/assets/images/brand/mimos-helo-monogram.png`: monograma transparente;
 - `public/assets/images/brand/mimos-helo-social.png`: versão em fundo Porcelana para metadados sociais.
 
-O usuário forneceu PDFs e imagens do WhatsApp como referência inicial, incluindo artes de caderneta, catálogo de festas, acabamento BOPP, prazos, entrega, reforma luxo, crachá inclusivo e adicionais. As imagens institucionais aproveitadas estão organizadas em `public/assets/images/guide/`. Fotos de produtos não devem ser copiadas para essa pasta: pertencem ao R2.
+O usuário forneceu PDFs e imagens do WhatsApp como referência inicial, incluindo artes de caderneta, catálogo de festas, acabamento BOPP, prazos, entrega, reforma luxo, crachá inclusivo e adicionais. Esses arquivos não são publicados pela aplicação. Uma cópia reduzida usada para validar a compressão do painel fica em `tests/fixtures/`; fotos reais de produtos pertencem ao R2.
 
 ## 13. Desenvolvimento local
 
@@ -294,7 +291,8 @@ A suíte executa:
 - smoke test da vitrine em Chrome;
 - smoke test do painel em Chrome;
 - personalização, edição e WhatsApp;
-- carrossel e arquivos públicos;
+- sequência direta entre apresentação, categorias e produtos;
+- validação dos arquivos públicos;
 - compressão de imagem;
 - desktop e larguras móveis de 320, 360, 390 e 430 px;
 - funcionamento com telemetria e `sessionStorage` bloqueados.
@@ -363,6 +361,7 @@ Além dos commits, foram realizados durante a conversa:
 - encapsulamento do JavaScript da vitrine em IIFE;
 - personalização obrigatória antes de adicionar produtos à seleção;
 - redesign responsivo do carrinho, baseado em zonas claras de cabeçalho, itens e fechamento, sem retirar a identidade visual oficial;
+- remoção completa do carrossel institucional, de seu lightbox, lógica de interação, estilos e imagens públicas;
 - geração do pedido pelo WhatsApp;
 - conexão do repositório GitHub e trabalho na `main`;
 - orientação inicial sobre Vercel e posterior consolidação na Cloudflare;

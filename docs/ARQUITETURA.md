@@ -8,7 +8,6 @@ public/                 site publicado pela Cloudflare Pages
   assets/css/storefront.css estilos exclusivos da vitrine
   assets/css/admin.css  estilos exclusivos do painel
   assets/js/            interface pública, painel e cliente da API
-  assets/images/guide/  imagens institucionais do guia de compra
 functions/              API executada pelo Cloudflare Pages Functions
   _shared/              autenticação, HTTP, armazenamento e acesso ao D1
   api/                   rotas JSON públicas e administrativas
@@ -30,7 +29,7 @@ docs/                    operação, implantação e decisões de arquitetura
 6. Ao finalizar, o site monta a mensagem e abre o WhatsApp.
 7. Eventos anônimos do funil são somados diariamente no D1 e aparecem no painel.
 
-Produtos e fotos não possuem fallback no frontend. Se o D1 estiver vazio, a vitrine mostra o estado vazio. As imagens em `public/assets/images/guide` são conteúdo institucional fixo, não produtos.
+Produtos e fotos não possuem fallback no frontend. Se o D1 estiver vazio, a vitrine mostra o estado vazio. A vitrine não mantém produtos, guia de compra ou carrossel fixos no HTML.
 
 O carrinho público usa uma gaveta responsiva de até 600 px, organizada em cabeçalho, lista rolável e resumo fixo. Em smartphones, ela ocupa toda a largura. Quantidade, preço, remoção e edição mantêm o índice original do item mesmo quando um produto salvo na sessão já não está disponível no catálogo.
 

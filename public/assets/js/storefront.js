@@ -46,7 +46,6 @@ const customizationDialog = document.querySelector("#customization-dialog");
 const customizationDialogContent = document.querySelector("#customization-dialog-content");
 const productDialog = document.querySelector("#product-dialog");
 const productDialogContent = document.querySelector("#product-dialog-content");
-const lightboxDialog = document.querySelector("#lightbox-dialog");
 const toast = document.querySelector("#toast");
 const catalogSearchInput = document.querySelector("[data-catalog-search]");
 const clearSearchButton = document.querySelector("[data-clear-search]");
@@ -641,13 +640,6 @@ function closeProductDialog() {
   productDialog.close();
 }
 
-function openLightbox(source, alt) {
-  const image = document.querySelector("#lightbox-image");
-  image.src = source;
-  image.alt = alt;
-  lightboxDialog.showModal();
-}
-
 function sendToWhatsApp() {
   if (!cart.length) return;
 
@@ -720,162 +712,6 @@ async function loadRemoteCatalog() {
   }
 }
 
-function initFeatureCarousel() {
-  const carousel = document.querySelector("[data-feature-carousel]");
-  if (!carousel) return;
-
-  const tabs = [...carousel.querySelectorAll("[data-carousel-tab]")];
-  const slides = [...carousel.querySelectorAll("[data-carousel-slide]")];
-  const stage = carousel.querySelector("[data-carousel-stage]");
-  const position = carousel.querySelector("[data-carousel-position]");
-  const progress = carousel.querySelector("[data-carousel-progress]");
-  const previousButtons = [...carousel.querySelectorAll("[data-carousel-prev]")];
-  const nextButtons = [...carousel.querySelectorAll("[data-carousel-next]")];
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const canHover = window.matchMedia("(hover: hover)").matches;
-  const total = slides.length;
-
-  let currentIndex = 0;
-  let autoPlayTimer;
-  let isVisible = true;
-  let isInteracting = false;
-  let pointerStartX = null;
-  let didSwipe = false;
-
-  const normalizeIndex = (index) => (index + total) % total;
-
-  function syncAutoPlay() {
-    window.clearInterval(autoPlayTimer);
-    if (reducedMotion.matches || !isVisible || isInteracting || document.hidden) return;
-    autoPlayTimer = window.setInterval(() => updateCarousel(currentIndex + 1), 4500);
-  }
-
-  function updateCarousel(nextIndex, moveTabIntoView = false) {
-    currentIndex = normalizeIndex(nextIndex);
-    const previousIndex = normalizeIndex(currentIndex - 1);
-    const followingIndex = normalizeIndex(currentIndex + 1);
-
-    slides.forEach((slide, index) => {
-      slide.classList.remove("is-active", "is-prev", "is-next", "is-hidden");
-
-      if (index === currentIndex) {
-        slide.classList.add("is-active");
-        slide.removeAttribute("aria-hidden");
-      } else {
-        slide.setAttribute("aria-hidden", "true");
-        if (index === previousIndex) slide.classList.add("is-prev");
-        else if (index === followingIndex) slide.classList.add("is-next");
-        else slide.classList.add("is-hidden");
-      }
-
-      slide.querySelectorAll("button, a").forEach((control) => {
-        control.tabIndex = index === currentIndex ? 0 : -1;
-      });
-    });
-
-    tabs.forEach((tab, index) => {
-      const isActive = index === currentIndex;
-      tab.classList.toggle("is-active", isActive);
-      tab.setAttribute("aria-selected", String(isActive));
-      tab.tabIndex = isActive ? 0 : -1;
-    });
-
-    position.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
-    progress.style.width = `${((currentIndex + 1) / total) * 100}%`;
-
-    if (moveTabIntoView && window.innerWidth <= 780) {
-      tabs[currentIndex].scrollIntoView({
-        behavior: reducedMotion.matches ? "auto" : "smooth",
-        block: "nearest",
-        inline: "center"
-      });
-    }
-
-    syncAutoPlay();
-  }
-
-  tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => updateCarousel(index, true));
-  });
-
-  previousButtons.forEach((button) => button.addEventListener("click", () => updateCarousel(currentIndex - 1, true)));
-  nextButtons.forEach((button) => button.addEventListener("click", () => updateCarousel(currentIndex + 1, true)));
-
-  carousel.addEventListener("keydown", (event) => {
-    if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
-    event.preventDefault();
-    if (event.key === "Home") updateCarousel(0, true);
-    else if (event.key === "End") updateCarousel(total - 1, true);
-    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") updateCarousel(currentIndex - 1, true);
-    else updateCarousel(currentIndex + 1, true);
-    tabs[currentIndex].focus({ preventScroll: true });
-  });
-
-  if (canHover) {
-    carousel.addEventListener("pointerenter", () => {
-      isInteracting = true;
-      syncAutoPlay();
-    });
-    carousel.addEventListener("pointerleave", () => {
-      isInteracting = false;
-      syncAutoPlay();
-    });
-  }
-
-  carousel.addEventListener("focusin", () => {
-    isInteracting = true;
-    syncAutoPlay();
-  });
-
-  carousel.addEventListener("focusout", () => {
-    window.setTimeout(() => {
-      isInteracting = carousel.contains(document.activeElement);
-      syncAutoPlay();
-    }, 0);
-  });
-
-  stage.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse") return;
-    pointerStartX = event.clientX;
-    didSwipe = false;
-  });
-
-  stage.addEventListener("pointerup", (event) => {
-    if (pointerStartX === null) return;
-    const distance = event.clientX - pointerStartX;
-    pointerStartX = null;
-    if (Math.abs(distance) < 45) return;
-    didSwipe = true;
-    updateCarousel(currentIndex + (distance < 0 ? 1 : -1), true);
-  });
-
-  stage.addEventListener(
-    "click",
-    (event) => {
-      if (!didSwipe) return;
-      event.preventDefault();
-      event.stopPropagation();
-      didSwipe = false;
-    },
-    true
-  );
-
-  if ("IntersectionObserver" in window) {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisible = entry.isIntersecting && entry.intersectionRatio >= 0.2;
-        syncAutoPlay();
-      },
-      { threshold: [0, 0.2, 0.6] }
-    );
-    observer.observe(carousel);
-  }
-
-  document.addEventListener("visibilitychange", syncAutoPlay);
-  reducedMotion.addEventListener?.("change", syncAutoPlay);
-  updateCarousel(0);
-}
-
 document.addEventListener("click", (event) => {
   const filterButton = event.target.closest("[data-filter]");
   if (filterButton) selectCatalogFilter(filterButton.dataset.filter);
@@ -928,9 +764,6 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-customization]")) closeCustomizationDialog();
   if (event.target.closest("[data-close-dialog]")) closeProductDialog();
 
-  const lightboxButton = event.target.closest("[data-lightbox]");
-  if (lightboxButton) openLightbox(lightboxButton.dataset.lightbox, lightboxButton.dataset.alt);
-  if (event.target.closest("[data-close-lightbox]")) lightboxDialog.close();
 });
 
 document.addEventListener("keydown", (event) => {
@@ -980,15 +813,10 @@ customizationDialog.addEventListener("close", () => {
   customizationTrigger?.focus();
 });
 
-lightboxDialog.addEventListener("click", (event) => {
-  if (event.target === lightboxDialog) lightboxDialog.close();
-});
-
 document.querySelector("#send-whatsapp").addEventListener("click", sendToWhatsApp);
 document.querySelector("#current-year").textContent = new Date().getFullYear();
 
 renderProducts();
 renderCart();
-initFeatureCarousel();
 loadRemoteCatalog();
 })();
