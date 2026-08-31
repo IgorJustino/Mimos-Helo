@@ -230,6 +230,51 @@ try {
     (await evaluate("document.querySelector('.cart-item-customization').textContent"))?.includes("Lucas Gabriel"),
     "O resumo da personalização não apareceu no carrinho."
   );
+  assert(
+    (await evaluate("document.querySelector('[data-cart-summary]').textContent")) === "1 item selecionado" &&
+      (await evaluate("document.querySelectorAll('.cart-item-customization span').length")) >= 6,
+    "O cabeçalho ou o resumo completo do orçamento não foi atualizado."
+  );
+  assert(
+    !(await evaluate("document.querySelector('#toast').classList.contains('is-visible')")),
+    "A confirmação de inclusão ficou sobreposta ao carrinho."
+  );
+  await delay(320);
+  await screenshot("/tmp/mimoshelo-carrinho-desktop.png");
+
+  await command("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true
+  });
+  await delay(180);
+  const mobileCartMetrics = await evaluate(`(() => {
+    const drawer = document.querySelector('.cart-drawer').getBoundingClientRect();
+    const footer = document.querySelector('.drawer-footer').getBoundingClientRect();
+    return {
+      viewportWidth: document.documentElement.clientWidth,
+      viewportHeight: window.innerHeight,
+      drawer: { left: drawer.left, right: drawer.right },
+      footer: { left: footer.left, right: footer.right, bottom: footer.bottom }
+    };
+  })()`);
+  assert(
+    mobileCartMetrics.drawer.left >= 0 &&
+      mobileCartMetrics.drawer.right <= mobileCartMetrics.viewportWidth &&
+      mobileCartMetrics.footer.left >= 0 &&
+      mobileCartMetrics.footer.right <= mobileCartMetrics.viewportWidth &&
+      mobileCartMetrics.footer.bottom <= mobileCartMetrics.viewportHeight + 1,
+    `O carrinho saiu da tela no celular: ${JSON.stringify(mobileCartMetrics)}`
+  );
+  await screenshot("/tmp/mimoshelo-carrinho-mobile.png");
+  await command("Emulation.setDeviceMetricsOverride", {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await delay(180);
 
   await evaluate("document.querySelector('#send-whatsapp').click()");
   const whatsappUrl = await evaluate("decodeURIComponent(window.__openedWhatsApp || '')");

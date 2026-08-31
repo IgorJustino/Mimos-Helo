@@ -26,11 +26,13 @@ docs/                    operação, implantação e decisões de arquitetura
 2. A foto comprimida é enviada para `pending/` no R2.
 3. Ao salvar o produto no D1, a API promove a foto para `catalogo/` e apaga a cópia temporária.
 4. A vitrine consulta `/api/products` e renderiza somente produtos publicados.
-5. A personalização e o carrinho permanecem no navegador do comprador.
+5. A personalização e o carrinho permanecem no `sessionStorage` da aba do comprador; não são gravados no D1 nem no R2.
 6. Ao finalizar, o site monta a mensagem e abre o WhatsApp.
 7. Eventos anônimos do funil são somados diariamente no D1 e aparecem no painel.
 
 Produtos e fotos não possuem fallback no frontend. Se o D1 estiver vazio, a vitrine mostra o estado vazio. As imagens em `public/assets/images/guide` são conteúdo institucional fixo, não produtos.
+
+O carrinho público usa uma gaveta responsiva de até 600 px, organizada em cabeçalho, lista rolável e resumo fixo. Em smartphones, ela ocupa toda a largura. Quantidade, preço, remoção e edição mantêm o índice original do item mesmo quando um produto salvo na sessão já não está disponível no catálogo.
 
 ## Fotos sem arquivos órfãos
 

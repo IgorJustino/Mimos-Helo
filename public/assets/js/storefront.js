@@ -41,6 +41,7 @@ const cartDrawer = document.querySelector(".cart-drawer");
 const cartContent = document.querySelector("#cart-content");
 const cartFooter = document.querySelector("#cart-footer");
 const cartTotal = document.querySelector("#cart-total");
+const cartSummary = document.querySelector("[data-cart-summary]");
 const customizationDialog = document.querySelector("#customization-dialog");
 const customizationDialogContent = document.querySelector("#customization-dialog-content");
 const productDialog = document.querySelector("#product-dialog");
@@ -513,16 +514,23 @@ function getCustomizationDetails(product, item) {
 }
 
 function renderCart() {
-  const availableItems = cart.filter((item) => getProduct(item.productId));
-  const itemCount = availableItems.reduce((sum, item) => sum + item.quantity, 0);
+  const availableItems = cart
+    .map((item, cartIndex) => ({ item, cartIndex, product: getProduct(item.productId) }))
+    .filter(({ product }) => product);
+  const itemCount = availableItems.reduce((sum, { item }) => sum + item.quantity, 0);
   document.querySelectorAll("[data-cart-count]").forEach((element) => {
     element.textContent = itemCount;
   });
+  cartSummary.textContent = itemCount === 0
+    ? "Nenhum item selecionado"
+    : `${itemCount} ${itemCount === 1 ? "item selecionado" : "itens selecionados"}`;
 
   if (!availableItems.length) {
     cartContent.innerHTML = `
       <div class="empty-cart">
-        <div class="empty-cart-mark" aria-hidden="true">+</div>
+        <div class="empty-cart-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8ZM9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        </div>
         <strong>Sua seleção está vazia</strong>
         <span>Escolha um produto para começar seu orçamento.</span>
       </div>
@@ -534,39 +542,48 @@ function renderCart() {
 
   let total = 0;
   cartContent.innerHTML = availableItems
-    .map((item, index) => {
-      const product = getProduct(item.productId);
-      if (!product) return "";
+    .map(({ item, cartIndex, product }) => {
       const unitPrice = getUnitPrice(product, item.option);
       const customizationDetails = getCustomizationDetails(product, item);
+      const hasCustomization = Boolean(product.options?.length || product.customizationFields?.length);
+      const customizationSummary = [
+        ...(item.option ? [{ label: product.optionLabel, value: item.option }] : []),
+        ...customizationDetails.map(({ field, value }) => ({
+          label: field.label,
+          value: formatCustomizationValue(field, value)
+        }))
+      ];
       total += unitPrice * item.quantity;
       return `
         <article class="cart-item">
           ${product.image
-            ? `<img src="${escapeHtml(product.image)}" alt="" />`
+            ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName || product.name)}" />`
             : `<div class="cart-image-placeholder" aria-hidden="true">♡</div>`}
-          <div>
-            <h3>${escapeHtml(product.shortName || product.name)}</h3>
-            <div class="cart-item-customization">
-              ${item.option ? `<span><strong>${escapeHtml(product.optionLabel)}:</strong> ${escapeHtml(item.option)}</span>` : ""}
-              ${customizationDetails
-                .slice(0, 2)
-                .map(
-                  ({ field, value }) =>
-                    `<span><strong>${escapeHtml(field.label)}:</strong> ${escapeHtml(formatCustomizationValue(field, value))}</span>`
-                )
-                .join("")}
+          <div class="cart-item-body">
+            <div class="cart-item-heading">
+              <h3>${escapeHtml(product.shortName || product.name)}</h3>
+              <div class="cart-item-price">
+                <strong>${formatCurrency(unitPrice * item.quantity)}</strong>
+                <button class="remove-item" type="button" data-cart-remove="${cartIndex}">Remover</button>
+              </div>
             </div>
-            <div class="cart-quantity" aria-label="Quantidade de ${escapeHtml(product.shortName || product.name)}">
-              <button type="button" data-cart-decrease="${index}" aria-label="Diminuir quantidade">−</button>
-              <span>${item.quantity}</span>
-              <button type="button" data-cart-increase="${index}" aria-label="Aumentar quantidade">+</button>
+            ${customizationSummary.length
+              ? `<div class="cart-item-customization">
+                  ${customizationSummary
+                    .map(({ label, value }) => `<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span>`)
+                    .join("")}
+                </div>`
+              : ""}
+            <div class="cart-item-actions">
+              <div class="cart-quantity" aria-label="Quantidade de ${escapeHtml(product.shortName || product.name)}">
+                <button type="button" data-cart-decrease="${cartIndex}" aria-label="Diminuir quantidade">−</button>
+                <span aria-live="polite">${item.quantity}</span>
+                <button type="button" data-cart-increase="${cartIndex}" aria-label="Aumentar quantidade">+</button>
+              </div>
+              ${hasCustomization
+                ? `<button class="edit-item" type="button" data-cart-edit="${cartIndex}">Editar personalização</button>`
+                : ""}
             </div>
-            <button class="edit-item" type="button" data-cart-edit="${index}">Editar personalização</button>
-          </div>
-          <div class="cart-item-price">
-            ${formatCurrency(unitPrice * item.quantity)}
-            <button class="remove-item" type="button" data-cart-remove="${index}">remover</button>
           </div>
         </article>
       `;
@@ -579,6 +596,8 @@ function renderCart() {
 
 function openCart() {
   lastFocusedElement = document.activeElement;
+  window.clearTimeout(toastTimer);
+  toast.classList.remove("is-visible");
   document.body.classList.add("drawer-open");
   cartDrawer.setAttribute("aria-hidden", "false");
   window.setTimeout(() => cartDrawer.querySelector("[data-close-cart]")?.focus(), 100);

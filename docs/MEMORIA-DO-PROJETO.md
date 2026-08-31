@@ -79,7 +79,7 @@ Arquivos antigos e pastas legadas de Supabase, migrações duplicadas, imagens d
 3. `public/assets/js/storefront.js` renderiza os cartões, a busca e os filtros de categoria.
 4. O comprador pode buscar sem depender de acentos, filtrar, abrir detalhes ou personalizar o produto.
 5. As escolhas e os dados de personalização ficam somente no `sessionStorage` e na memória do navegador.
-6. O comprador altera quantidades e revisa a seleção no carrinho lateral.
+6. O comprador altera quantidades e revisa a seleção em uma gaveta lateral de até 600 px, que ocupa toda a tela no celular e mantém o resumo do orçamento acessível no rodapé.
 7. Ao clicar em enviar, o navegador monta uma mensagem e abre `wa.me` com o pedido preenchido.
 
 Se o banco estiver corretamente acessível, mas não tiver produtos publicados, a vitrine mostra um estado vazio. Não existe fallback de produtos fixos no frontend; o D1 é a única fonte de verdade do catálogo.
@@ -97,6 +97,7 @@ O código da vitrine é encapsulado em uma IIFE. Estado do catálogo, carrinho e
 - formulário de personalização configurável por produto;
 - opções com preços e descrições diferentes;
 - carrinho/seleção com quantidades e edição da personalização;
+- carrinho em formato de folha de orçamento, com imagem, preço, detalhes, ações alinhadas e resumo fixo;
 - mensagem de WhatsApp com itens, opções, personalizações e subtotal de referência;
 - lightbox para ampliar imagens do guia;
 - estados de carregamento, catálogo vazio e erro de conexão;
@@ -361,6 +362,7 @@ Além dos commits, foram realizados durante a conversa:
 - remoção de código visual legado, numeração decorativa e gradientes sem função;
 - encapsulamento do JavaScript da vitrine em IIFE;
 - personalização obrigatória antes de adicionar produtos à seleção;
+- redesign responsivo do carrinho, baseado em zonas claras de cabeçalho, itens e fechamento, sem retirar a identidade visual oficial;
 - geração do pedido pelo WhatsApp;
 - conexão do repositório GitHub e trabalho na `main`;
 - orientação inicial sobre Vercel e posterior consolidação na Cloudflare;
