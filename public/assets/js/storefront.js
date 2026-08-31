@@ -1,3 +1,6 @@
+(() => {
+"use strict";
+
 const WHATSAPP_NUMBER = "5561996697056";
 const CART_KEY = "mimos-helo-selection-v2";
 const TELEMETRY_SESSION_KEY = "mimos-helo-telemetry-v1";
@@ -969,3 +972,4 @@ renderProducts();
 renderCart();
 initFeatureCarousel();
 loadRemoteCatalog();
+})();

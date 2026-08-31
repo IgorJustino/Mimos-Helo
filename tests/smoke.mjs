@@ -93,6 +93,19 @@ try {
   await command("Page.addScriptToEvaluateOnNewDocument", {
     source: `
       window.__telemetryEvents = [];
+      const nativeFetch = window.fetch.bind(window);
+      window.fetch = async (...args) => {
+        const response = await nativeFetch(...args);
+        const url = String(args[0] instanceof Request ? args[0].url : args[0]);
+        if (!url.includes('/api/products') || !response.ok) return response;
+        const payload = await response.clone().json();
+        const reforma = payload.products?.find((product) => product.id === 'reforma-luxo');
+        if (reforma?.customization_fields?.[0]) reforma.customization_fields[0].type = 'number';
+        return new Response(JSON.stringify(payload), {
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      };
       Object.defineProperty(Navigator.prototype, 'sendBeacon', {
         configurable: true,
         value(url, body) {
@@ -133,6 +146,16 @@ try {
     pageState.productCount === 6,
     `Os seis produtos não foram renderizados (${JSON.stringify(pageState)}; erros: ${browserErrors.join('; ')}).`
   );
+  assert(
+    await evaluate(`
+      typeof products === 'undefined' &&
+      !document.querySelector('.scallop') &&
+      document.querySelectorAll('.category-ribbon button span').length === 0 &&
+      Boolean(document.querySelector('meta[property="og:url"]')) &&
+      Boolean(document.querySelector('meta[name="twitter:card"]'))
+    `),
+    "O encapsulamento, a limpeza do DOM ou os metadados sociais não foram aplicados."
+  );
 
   assert(
     (await evaluate("document.querySelectorAll('[data-carousel-slide]').length")) === 5,
@@ -166,7 +189,6 @@ try {
   await screenshot("/tmp/mimoshelo-home-desktop.png");
 
   await evaluate(`
-    products.find((product) => product.id === 'reforma-luxo').customizationFields[0].type = 'number';
     document.querySelector('[data-customize-product="reforma-luxo"]').click();
     document.querySelector('[name="coverName"]').value = 'Maria Helena';
   `);
@@ -175,10 +197,7 @@ try {
       (await evaluate("document.querySelector('[name=\"coverName\"]').value")) === "Maria Helena",
     "O campo de nome da capa não aceitou letras."
   );
-  await evaluate(`
-    document.querySelector('#customization-dialog').close();
-    products.find((product) => product.id === 'reforma-luxo').customizationFields[0].type = 'text';
-  `);
+  await evaluate("document.querySelector('#customization-dialog').close()");
 
   await evaluate(`
     window.open = (url) => { window.__openedWhatsApp = url; };
@@ -231,7 +250,7 @@ try {
   `);
   assert((await evaluate("document.querySelector('[data-cart-count]').textContent")) === "1", "Editar a personalização duplicou o item.");
 
-  await evaluate("closeCart(); document.querySelector('[data-filter=\"festas-celebracoes\"]').click()");
+  await evaluate("document.querySelector('[data-close-cart]').click(); document.querySelector('[data-filter=\"festas-celebracoes\"]').click()");
   assert((await evaluate("document.querySelectorAll('.product-card').length")) === 3, "O filtro de festas não retornou três produtos.");
 
   await evaluate(`
@@ -269,9 +288,9 @@ try {
   await evaluate(`
     document.documentElement.style.scrollBehavior = 'auto';
     document.querySelector('[data-carousel-tab="1"]').click();
-    cart.splice(0);
-    saveCart();
-    renderCart();
+    document.querySelector('[data-open-cart]').click();
+    document.querySelector('[data-cart-remove]')?.click();
+    document.querySelector('[data-close-cart]').click();
     document.querySelector('#toast').classList.remove('is-visible');
     document.querySelector('[data-feature-carousel]').scrollIntoView({block: 'start'});
   `);

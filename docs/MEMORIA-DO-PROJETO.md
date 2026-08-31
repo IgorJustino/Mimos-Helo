@@ -52,7 +52,9 @@ O projeto teve uma proposta anterior com Supabase e uma publicação na Vercel, 
 public/                         frontend publicado
   index.html                    vitrine
   admin.html                    área administrativa
-  assets/css/                   estilos da vitrine e do painel
+  assets/css/base.css           tokens, reset e componentes compartilhados
+  assets/css/storefront.css     estilos exclusivos da vitrine
+  assets/css/admin.css          estilos exclusivos do painel
   assets/js/                    catálogo, carrinho, painel e cliente da API
   assets/images/brand/          marcas oficiais e imagem de compartilhamento
   assets/images/guide/          imagens institucionais do guia
@@ -81,6 +83,8 @@ Arquivos antigos e pastas legadas de Supabase, migrações duplicadas, imagens d
 7. Ao clicar em enviar, o navegador monta uma mensagem e abre `wa.me` com o pedido preenchido.
 
 Se o banco estiver corretamente acessível, mas não tiver produtos publicados, a vitrine mostra um estado vazio. Não existe fallback de produtos fixos no frontend; o D1 é a única fonte de verdade do catálogo.
+
+O código da vitrine é encapsulado em uma IIFE. Estado do catálogo, carrinho e funções internas não ficam disponíveis no escopo global do navegador.
 
 ### Funcionalidades presentes
 
@@ -241,6 +245,17 @@ Direção oficial atual:
 - vitrine em quatro colunas no desktop, duas no smartphone e uma somente em larguras muito estreitas;
 - painel com trilho lateral Azul Tinta e área de edição clara;
 - painel de métricas desenhado como o caminho real até o WhatsApp.
+- categorias apresentadas como escolhas, sem numeração decorativa;
+- cinco gradientes intencionais em toda a interface pública e nenhum no painel administrativo;
+- metadados Open Graph e Twitter Card usando a marca oficial.
+
+### Organização dos estilos
+
+- `base.css` contém somente tokens, reset, acessibilidade, botões e marca compartilhados;
+- `storefront.css` não contém mais a camada visual anterior nem seletores sem uso;
+- `admin.css` é independente da vitrine e mantém apenas os componentes do painel;
+- em 31/08/2026, a limpeza reduziu `storefront.css` de 3.623 para menos de 700 linhas e `admin.css` de 1.536 para menos de 350 linhas;
+- a quantidade de funções de gradiente caiu de 36 para 5, preservando apenas placeholder, legibilidade sobre imagens, encadernação e assinatura da marca.
 
 Arquivos de marca publicados:
 
@@ -342,6 +357,9 @@ Além dos commits, foram realizados durante a conversa:
 - atualização da vitrine e do painel para a identidade oficial Azul Tinta/Porcelana;
 - inclusão do logotipo e monograma oficiais sem recriá-los em texto;
 - busca de produtos sem dependência de acentos e categorias oficiais com compatibilidade legada;
+- consolidação do CSS em base compartilhada, vitrine e painel independentes;
+- remoção de código visual legado, numeração decorativa e gradientes sem função;
+- encapsulamento do JavaScript da vitrine em IIFE;
 - personalização obrigatória antes de adicionar produtos à seleção;
 - geração do pedido pelo WhatsApp;
 - conexão do repositório GitHub e trabalho na `main`;

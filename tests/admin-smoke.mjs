@@ -157,6 +157,13 @@ try {
   await command("Page.navigate", { url: `${siteUrl}/admin` });
   await delay(1800);
 
+  assert(
+    await evaluate(`
+      [...document.styleSheets].some((sheet) => sheet.href?.endsWith('/assets/css/base.css')) &&
+      ![...document.styleSheets].some((sheet) => sheet.href?.endsWith('/assets/css/storefront.css'))
+    `),
+    "O painel não isolou seus estilos da vitrine."
+  );
   assert(!(await evaluate("document.querySelector('[data-admin-login]').hidden")), "O formulário de login não abriu.");
   await evaluate(`
     document.querySelector('[name="username"]').value = 'admin-mimos';

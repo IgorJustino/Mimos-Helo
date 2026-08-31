@@ -4,7 +4,9 @@ O projeto segue uma separação simples por responsabilidade:
 
 ```text
 public/                 site publicado pela Cloudflare Pages
-  assets/css/           estilos da vitrine e do painel
+  assets/css/base.css   tokens, reset e componentes realmente compartilhados
+  assets/css/storefront.css estilos exclusivos da vitrine
+  assets/css/admin.css  estilos exclusivos do painel
   assets/js/            interface pública, painel e cliente da API
   assets/images/guide/  imagens institucionais do guia de compra
 functions/              API executada pelo Cloudflare Pages Functions
@@ -48,6 +50,9 @@ Nome, telefone, escolhas de personalização, mensagem e conteúdo do carrinho n
 ## Padrões
 
 - arquivos públicos usam nomes em inglês e `kebab-case`;
+- vitrine e painel compartilham somente `base.css`; o painel não carrega `storefront.css`;
+- o JavaScript da vitrine fica encapsulado em IIFE e não cria estado global;
+- gradientes são reservados para legibilidade ou assinatura visual, não para decoração genérica;
 - módulos compartilhados da API ficam em `functions/_shared`;
 - mudanças no esquema são novas migrações SQL; migrações já publicadas não são alteradas;
 - dados de demonstração nunca ficam em migrações de produção;
