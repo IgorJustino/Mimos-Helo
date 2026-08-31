@@ -8,7 +8,7 @@ O catálogo público carrega todos os produtos diretamente do Cloudflare D1 e as
 
 O banco armazena informações dos produtos e contagens anônimas do funil. Os dados preenchidos pelos compradores permanecem na sessão do navegador e são usados para montar a mensagem do WhatsApp; nome, telefone e personalizações não entram nas métricas.
 
-Veja a [arquitetura](docs/ARQUITETURA.md) e o [passo a passo da Cloudflare](docs/CONFIGURAR-CATALOGO.md).
+Veja a [memória consolidada do projeto](docs/MEMORIA-DO-PROJETO.md), a [arquitetura](docs/ARQUITETURA.md) e o [passo a passo da Cloudflare](docs/CONFIGURAR-CATALOGO.md).
 
 ## Abrir localmente
 
