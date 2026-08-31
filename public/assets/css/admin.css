@@ -1241,3 +1241,296 @@
     animation: none;
   }
 }
+
+/* Painel alinhado ao manual de identidade oficial. */
+.admin-page {
+  color: var(--grafite);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(200, 184, 212, 0.18), transparent 26%),
+    var(--porcelana);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.admin-topbar {
+  min-height: 82px;
+  padding: 10px 28px;
+  border-color: rgba(27, 58, 92, 0.14);
+  background: rgba(250, 247, 243, 0.96);
+  box-shadow: 0 8px 26px rgba(27, 58, 92, 0.06);
+}
+
+.admin-topbar .brand {
+  gap: 16px;
+}
+
+.admin-topbar .brand-logo-window {
+  width: 176px;
+  height: 62px;
+}
+
+.admin-topbar .brand-logo-window img {
+  width: 176px;
+  transform: translateY(-34px);
+}
+
+.admin-brand-label {
+  padding-left: 16px;
+  border-left: 1px solid rgba(27, 58, 92, 0.18);
+  color: var(--azul-tinta);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.admin-link-button {
+  border-color: rgba(27, 58, 92, 0.18);
+  border-radius: 7px;
+  color: var(--azul-tinta);
+  font-weight: 650;
+}
+
+.admin-gate {
+  min-height: calc(100dvh - 82px);
+}
+
+.gate-card {
+  border-color: rgba(27, 58, 92, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.gate-kicker {
+  color: var(--rose-seco);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.gate-card h1,
+.rail-heading h1,
+.editor-empty h2,
+.editor-header h2,
+.sheet-heading > span,
+.sheet-heading > div > span,
+.conversion-heading h2,
+.conversion-result strong {
+  color: var(--azul-tinta);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 600;
+}
+
+.login-mark {
+  width: 92px;
+  height: 92px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 15px 32px rgba(27, 58, 92, 0.18);
+  object-fit: contain;
+}
+
+.login-form label > span,
+.admin-field > span:first-child {
+  font-weight: 650;
+}
+
+.login-form input,
+.admin-field input,
+.admin-field select,
+.admin-field textarea,
+.admin-search input,
+.repeater-row input,
+.repeater-row select {
+  border-color: rgba(27, 58, 92, 0.17);
+  border-radius: 8px;
+}
+
+.login-form input:focus,
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus,
+.admin-search input:focus,
+.repeater-row input:focus,
+.repeater-row select:focus {
+  border-color: var(--azul-tinta);
+  box-shadow: 0 0 0 3px rgba(27, 58, 92, 0.09);
+}
+
+.admin-workspace {
+  height: calc(100dvh - 82px);
+  grid-template-columns: 350px minmax(0, 1fr);
+}
+
+.product-rail {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.035), transparent 42%),
+    var(--azul-tinta);
+}
+
+.product-rail .gate-kicker {
+  color: var(--rose-seco);
+}
+
+.product-rail .rail-heading h1 {
+  color: #fff;
+  font-size: 2.25rem;
+}
+
+.product-total {
+  color: var(--azul-tinta);
+  background: var(--porcelana);
+}
+
+.product-rail > .button-primary {
+  color: var(--azul-tinta);
+  background: var(--porcelana);
+  box-shadow: none;
+}
+
+.admin-search input {
+  color: var(--grafite);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.rail-summary {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.rail-summary span {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rail-summary strong {
+  color: #fff;
+}
+
+.conversion-journey {
+  border-color: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.conversion-kicker,
+.conversion-result strong {
+  color: var(--rose-seco);
+}
+
+.conversion-refresh,
+.conversion-marker {
+  color: var(--azul-tinta);
+  background: var(--lavanda);
+}
+
+.conversion-steps li:last-child .conversion-marker {
+  background: var(--rose-seco);
+}
+
+.conversion-highlight {
+  color: var(--azul-tinta);
+}
+
+.admin-product-card {
+  border-radius: 10px;
+  color: var(--grafite);
+  background: rgba(255, 255, 255, 0.93);
+}
+
+.admin-product-card:hover {
+  background: #fff;
+}
+
+.admin-product-card.is-active {
+  border-color: var(--rose-seco);
+  box-shadow: 0 8px 22px rgba(5, 21, 38, 0.2);
+}
+
+.admin-product-card img,
+.admin-product-placeholder {
+  border-radius: 7px;
+}
+
+.product-editor {
+  background:
+    linear-gradient(90deg, rgba(27, 58, 92, 0.018) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(rgba(27, 58, 92, 0.018) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--porcelana);
+}
+
+.editor-empty > span {
+  color: var(--rose-seco);
+}
+
+.editor-header,
+.editor-footer {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.form-sheet {
+  border-color: rgba(27, 58, 92, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 30px rgba(27, 58, 92, 0.06);
+}
+
+.form-sheet-main::before {
+  border-color: rgba(212, 165, 165, 0.35);
+}
+
+.sheet-heading {
+  border-color: var(--line);
+}
+
+.sheet-heading > span,
+.sheet-heading > div > span {
+  font-size: 1.35rem;
+}
+
+.editor-footer .button-primary {
+  background: var(--azul-tinta);
+}
+
+@media (max-width: 780px) {
+  .admin-topbar {
+    min-height: 70px;
+    padding: 7px 14px;
+  }
+
+  .admin-topbar .brand-logo-window {
+    width: 142px;
+    height: 50px;
+  }
+
+  .admin-topbar .brand-logo-window img {
+    width: 142px;
+    transform: translateY(-27px);
+  }
+
+  .admin-brand-label,
+  .admin-account > span {
+    display: none;
+  }
+
+  .admin-workspace {
+    height: auto;
+  }
+
+  .product-rail {
+    border-bottom: 0;
+  }
+
+  .editor-header h2 {
+    color: var(--azul-tinta);
+  }
+}
+
+@media (max-width: 560px) {
+  .gate-card {
+    border-radius: 14px;
+  }
+
+  .form-sheet {
+    border-radius: 12px;
+  }
+}

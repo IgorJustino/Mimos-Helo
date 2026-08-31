@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#fff7fa" />
+    <meta name="theme-color" content="#1B3A5C" />
     <title>Ateliê do catálogo — Mimos Helo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Borel&family=Caprasimo&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/storefront.css" />
@@ -19,11 +19,11 @@
     <a class="skip-link" href="#admin-main">Ir para o conteúdo</a>
 
     <header class="admin-topbar">
-      <a class="brand" href="/" aria-label="Abrir catálogo da Mimos Helo">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40"><path d="M20 34S5 26 5 15.4C5 7.9 15 5.8 20 13c5-7.2 15-5.1 15 2.4C35 26 20 34 20 34Z" /></svg>
+      <a class="brand brand-official" href="/" aria-label="Abrir catálogo da Mimos Helo">
+        <span class="brand-logo-window">
+          <img src="assets/images/brand/mimos-helo-logo.png" alt="Mimos Helo Soluções Criativas" width="1448" height="1086" />
         </span>
-        <span class="brand-copy"><strong>Mimos Helo</strong><small>ateliê do catálogo</small></span>
+        <span class="admin-brand-label">Ateliê do catálogo</span>
       </a>
 
       <div class="admin-account" data-admin-account hidden>
@@ -58,7 +58,7 @@
 
       <section class="admin-gate" data-admin-login hidden>
         <article class="gate-card login-card">
-          <div class="login-mark" aria-hidden="true">MH</div>
+          <img class="login-mark" src="assets/images/brand/mimos-helo-monogram.png" alt="" width="1000" height="1000" />
           <span class="gate-kicker">Acesso da proprietária</span>
           <h1>Confirme seu acesso</h1>
           <p>Use as credenciais administrativas para cadastrar e atualizar os produtos.</p>
@@ -181,11 +181,18 @@
                   <label class="admin-field">
                     <span>Categoria *</span>
                     <select name="category" required>
-                      <option value="cadernetas">Cadernetas</option>
-                      <option value="identificacao">Identificação</option>
-                      <option value="festas">Festas</option>
-                      <option value="acabamentos">Acabamentos</option>
-                      <option value="outros">Outros</option>
+                      <option value="festas-celebracoes">Festas &amp; Celebrações</option>
+                      <option value="papelaria-personalizacao">Papelaria &amp; Personalização</option>
+                      <option value="brindes-solucoes">Brindes &amp; Soluções Corporativas</option>
+                      <option value="impressao-3d">Impressão 3D</option>
+                      <option value="presentes">Presentes</option>
+                      <optgroup label="Categorias anteriores">
+                        <option value="cadernetas">Cadernetas</option>
+                        <option value="identificacao">Identificação</option>
+                        <option value="festas">Festas</option>
+                        <option value="acabamentos">Acabamentos</option>
+                        <option value="outros">Outros</option>
+                      </optgroup>
                     </select>
                   </label>
                   <label class="admin-field">

@@ -31,7 +31,19 @@ const EDITABLE_COLUMNS = [
   "sort_order"
 ];
 
-const ALLOWED_CATEGORIES = new Set(["cadernetas", "identificacao", "festas", "acabamentos", "outros"]);
+const ALLOWED_CATEGORIES = new Set([
+  "festas-celebracoes",
+  "papelaria-personalizacao",
+  "brindes-solucoes",
+  "impressao-3d",
+  "presentes",
+  // Categorias legadas permanecem válidas para preservar os produtos já cadastrados.
+  "cadernetas",
+  "identificacao",
+  "festas",
+  "acabamentos",
+  "outros"
+]);
 
 function validationError(message) {
   return Object.assign(new Error(message), { status: 400 });

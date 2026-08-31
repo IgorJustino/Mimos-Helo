@@ -9,6 +9,27 @@ const FINISH_DESCRIPTIONS = {
   "Holográfico confete": "Partículas delicadas e reluzentes para um efeito alegre."
 };
 
+const CATEGORY_LABELS = {
+  "festas-celebracoes": "Festas & Celebrações",
+  festas: "Festas & Celebrações",
+  "papelaria-personalizacao": "Papelaria & Personalização",
+  cadernetas: "Papelaria & Personalização",
+  identificacao: "Papelaria & Personalização",
+  acabamentos: "Papelaria & Personalização",
+  "brindes-solucoes": "Brindes & Soluções Corporativas",
+  outros: "Brindes & Soluções Corporativas",
+  "impressao-3d": "Impressão 3D",
+  presentes: "Presentes"
+};
+
+const CATEGORY_GROUPS = {
+  "festas-celebracoes": ["festas-celebracoes", "festas"],
+  "papelaria-personalizacao": ["papelaria-personalizacao", "cadernetas", "identificacao", "acabamentos"],
+  "brindes-solucoes": ["brindes-solucoes", "outros"],
+  "impressao-3d": ["impressao-3d"],
+  presentes: ["presentes"]
+};
+
 let products = [];
 let catalogState = "loading";
 
@@ -23,8 +44,12 @@ const productDialog = document.querySelector("#product-dialog");
 const productDialogContent = document.querySelector("#product-dialog-content");
 const lightboxDialog = document.querySelector("#lightbox-dialog");
 const toast = document.querySelector("#toast");
+const catalogSearchInput = document.querySelector("[data-catalog-search]");
+const clearSearchButton = document.querySelector("[data-clear-search]");
+const catalogResultStatus = document.querySelector("[data-catalog-result-status]");
 
 let selectedFilter = "todos";
+let searchQuery = "";
 let cart = loadCart();
 let lastFocusedElement = null;
 let customizationTrigger = null;
@@ -134,8 +159,61 @@ function getUnitPrice(product, option) {
   return product.optionPrices[optionIndex] ?? product.price;
 }
 
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
+}
+
+function getCategoryLabel(category) {
+  return CATEGORY_LABELS[category] || "Soluções criativas";
+}
+
+function productMatchesFilter(product) {
+  if (selectedFilter === "todos") return true;
+  return (CATEGORY_GROUPS[selectedFilter] || [selectedFilter]).includes(product.category);
+}
+
+function productMatchesSearch(product) {
+  if (!searchQuery) return true;
+  const searchableText = [
+    product.name,
+    product.shortName,
+    product.description,
+    product.meta,
+    getCategoryLabel(product.category),
+    ...(product.options || []),
+    ...(product.details || [])
+  ].join(" ");
+  return normalizeSearchText(searchableText).includes(searchQuery);
+}
+
+function updateCatalogStatus(count) {
+  if (!catalogResultStatus) return;
+  if (catalogState !== "ready" || !products.length) {
+    catalogResultStatus.textContent = "";
+    return;
+  }
+  const label = count === 1 ? "produto encontrado" : "produtos encontrados";
+  catalogResultStatus.textContent = `${count} ${label}${searchQuery ? ` para “${catalogSearchInput?.value.trim()}”` : ""}.`;
+}
+
+function selectCatalogFilter(value, { scroll = false } = {}) {
+  selectedFilter = value;
+  document.querySelectorAll("[data-filter]").forEach((button) => {
+    const isActive = button.dataset.filter === value;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+  renderProducts();
+  if (scroll) document.querySelector("#produtos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderProducts() {
   if (catalogState === "loading") {
+    updateCatalogStatus(0);
     productGrid.innerHTML = `
       <div class="catalog-empty-state catalog-loading-state" role="status">
         <span class="catalog-loader" aria-hidden="true"></span>
@@ -147,6 +225,7 @@ function renderProducts() {
   }
 
   if (catalogState === "error") {
+    updateCatalogStatus(0);
     productGrid.innerHTML = `
       <div class="catalog-empty-state" role="alert">
         <span aria-hidden="true">!</span>
@@ -158,6 +237,7 @@ function renderProducts() {
   }
 
   if (!products.length) {
+    updateCatalogStatus(0);
     productGrid.innerHTML = `
       <div class="catalog-empty-state">
         <span aria-hidden="true">♡</span>
@@ -168,11 +248,25 @@ function renderProducts() {
     return;
   }
 
-  productGrid.innerHTML = products
+  const visibleProducts = products.filter((product) => productMatchesFilter(product) && productMatchesSearch(product));
+  updateCatalogStatus(visibleProducts.length);
+
+  if (!visibleProducts.length) {
+    productGrid.innerHTML = `
+      <div class="catalog-empty-state catalog-search-empty" role="status">
+        <span aria-hidden="true">⌕</span>
+        <h3>Nenhum produto encontrado</h3>
+        <p>Tente outro termo ou escolha “Todos” para ver o catálogo completo.</p>
+        <button class="button button-outline" type="button" data-reset-catalog>Limpar busca e filtros</button>
+      </div>
+    `;
+    return;
+  }
+
+  productGrid.innerHTML = visibleProducts
     .map((product) => {
-      const hidden = selectedFilter !== "todos" && product.category !== selectedFilter;
       return `
-        <article class="product-card" data-product="${product.id}" data-category="${product.category}" ${hidden ? "hidden" : ""}>
+        <article class="product-card" data-product="${product.id}" data-category="${escapeHtml(product.category)}">
           <div class="product-media">
             ${product.image
               ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.alt)}" loading="lazy" />`
@@ -180,10 +274,10 @@ function renderProducts() {
             ${product.badge ? `<span class="product-badge">${escapeHtml(product.badge)}</span>` : ""}
           </div>
           <div class="product-body">
-            <span class="product-meta">${escapeHtml(product.meta)}</span>
+            <span class="product-meta">${escapeHtml(getCategoryLabel(product.category))}</span>
             <div class="product-title-row">
               <h3>${escapeHtml(product.name)}</h3>
-              <span class="product-price">${escapeHtml(product.priceLabel)}<small>${escapeHtml(product.priceNote)}</small></span>
+              <span class="product-price"><small>A partir de</small>${escapeHtml(product.priceLabel)}${product.priceNote ? `<em>${escapeHtml(product.priceNote)}</em>` : ""}</span>
             </div>
             <p class="product-description">${escapeHtml(product.description)}</p>
             <div class="product-actions">
@@ -591,7 +685,6 @@ async function loadRemoteCatalog() {
     catalogState = "ready";
     cart = cart.filter((item) => getProduct(item.productId));
     saveCart();
-    updateHeroProduct(products[0]);
     renderProducts();
     renderCart();
     trackCatalogView();
@@ -602,25 +695,6 @@ async function loadRemoteCatalog() {
     renderProducts();
     renderCart();
     console.warn("O catálogo online não pôde ser carregado.", error);
-  }
-}
-
-function updateHeroProduct(product) {
-  const visual = document.querySelector("[data-hero-product]");
-  if (!visual || !product) return;
-
-  const image = visual.querySelector("[data-hero-product-image]");
-  const placeholder = visual.querySelector("[data-hero-product-placeholder]");
-  const name = visual.querySelector("[data-hero-product-name]");
-  const price = visual.querySelector("[data-hero-product-price]");
-
-  name.textContent = product.name;
-  price.textContent = product.priceLabel;
-  if (product.image) {
-    image.src = product.image;
-    image.alt = product.alt || `Foto de ${product.name}`;
-    image.hidden = false;
-    placeholder.hidden = true;
   }
 }
 
@@ -782,16 +856,17 @@ function initFeatureCarousel() {
 
 document.addEventListener("click", (event) => {
   const filterButton = event.target.closest("[data-filter]");
-  if (filterButton) {
-    selectedFilter = filterButton.dataset.filter;
-    document.querySelectorAll("[data-filter]").forEach((button) => {
-      const isActive = button === filterButton;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", String(isActive));
-    });
-    document.querySelectorAll(".product-card").forEach((card) => {
-      card.hidden = selectedFilter !== "todos" && card.dataset.category !== selectedFilter;
-    });
+  if (filterButton) selectCatalogFilter(filterButton.dataset.filter);
+
+  const categoryShortcut = event.target.closest("[data-category-shortcut]");
+  if (categoryShortcut) selectCatalogFilter(categoryShortcut.dataset.categoryShortcut, { scroll: true });
+
+  if (event.target.closest("[data-reset-catalog]")) {
+    searchQuery = "";
+    if (catalogSearchInput) catalogSearchInput.value = "";
+    clearSearchButton?.setAttribute("hidden", "");
+    selectCatalogFilter("todos");
+    catalogSearchInput?.focus();
   }
 
   const customizeButton = event.target.closest("[data-customize-product]");
@@ -838,6 +913,26 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && document.body.classList.contains("drawer-open")) closeCart();
+});
+
+catalogSearchInput?.addEventListener("input", () => {
+  searchQuery = normalizeSearchText(catalogSearchInput.value);
+  clearSearchButton?.toggleAttribute("hidden", !searchQuery);
+  renderProducts();
+});
+
+catalogSearchInput?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  document.querySelector("#produtos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+clearSearchButton?.addEventListener("click", () => {
+  catalogSearchInput.value = "";
+  searchQuery = "";
+  clearSearchButton.hidden = true;
+  renderProducts();
+  catalogSearchInput.focus();
 });
 
 productDialog.addEventListener("click", (event) => {

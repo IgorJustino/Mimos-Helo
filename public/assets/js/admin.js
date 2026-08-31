@@ -43,6 +43,18 @@
   const MAX_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
   const MAX_UPLOADED_IMAGE_SIZE = 5 * 1024 * 1024;
   const MAX_IMAGE_DIMENSION = 1800;
+  const CATEGORY_LABELS = {
+    "festas-celebracoes": "Festas & Celebrações",
+    festas: "Festas & Celebrações",
+    "papelaria-personalizacao": "Papelaria & Personalização",
+    cadernetas: "Papelaria & Personalização",
+    identificacao: "Papelaria & Personalização",
+    acabamentos: "Papelaria & Personalização",
+    "brindes-solucoes": "Brindes & Soluções Corporativas",
+    outros: "Brindes & Soluções Corporativas",
+    "impressao-3d": "Impressão 3D",
+    presentes: "Presentes"
+  };
 
   function showView(name) {
     Object.entries(views).forEach(([viewName, element]) => {
@@ -360,7 +372,7 @@
             }
             <span class="admin-product-copy">
               <strong>${escapeHtml(product.name)}</strong>
-              <small>${formatCurrency(product.price)} · ${escapeHtml(product.category)}</small>
+              <small>${formatCurrency(product.price)} · ${escapeHtml(CATEGORY_LABELS[product.category] || product.category)}</small>
             </span>
             <span class="product-status-dot ${product.published ? "" : "is-draft"}" title="${product.published ? "Publicado" : "Oculto"}"></span>
           </button>

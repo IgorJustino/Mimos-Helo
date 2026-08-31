@@ -163,6 +163,7 @@ try {
       .map(async (path) => ({ path, status: (await fetch(path)).status }))
   ).then((items) => items.filter((item) => item.status !== 200))`);
   assert(assetFailures.length === 0, `Assets indisponíveis: ${JSON.stringify(assetFailures)}`);
+  await screenshot("/tmp/mimoshelo-home-desktop.png");
 
   await evaluate(`
     products.find((product) => product.id === 'reforma-luxo').customizationFields[0].type = 'number';
@@ -230,8 +231,25 @@ try {
   `);
   assert((await evaluate("document.querySelector('[data-cart-count]').textContent")) === "1", "Editar a personalização duplicou o item.");
 
-  await evaluate("closeCart(); document.querySelector('[data-filter=\"festas\"]').click()");
-  assert((await evaluate("[...document.querySelectorAll('.product-card')].filter((card) => !card.hidden).length")) === 3, "O filtro de festas não retornou três produtos.");
+  await evaluate("closeCart(); document.querySelector('[data-filter=\"festas-celebracoes\"]').click()");
+  assert((await evaluate("document.querySelectorAll('.product-card').length")) === 3, "O filtro de festas não retornou três produtos.");
+
+  await evaluate(`
+    document.querySelector('[data-filter="todos"]').click();
+    const search = document.querySelector('[data-catalog-search]');
+    search.value = 'cracha';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  `);
+  assert(
+    (await evaluate("document.querySelectorAll('.product-card').length")) === 1 &&
+      (await evaluate("document.querySelector('[data-catalog-result-status]').textContent"))?.includes("1 produto"),
+    "A busca do catálogo não encontrou o crachá sem depender de acentos."
+  );
+  await evaluate("document.querySelector('[data-clear-search]').click()");
+  assert((await evaluate("document.querySelectorAll('.product-card').length")) === 6, "Limpar a busca não restaurou o catálogo.");
+  await evaluate("document.documentElement.style.scrollBehavior = 'auto'; document.querySelector('#produtos').scrollIntoView({block: 'start'})");
+  await delay(180);
+  await screenshot("/tmp/mimoshelo-produtos-desktop.png");
 
   await evaluate("document.querySelector('[data-show-product=\"kit-classico\"]').click()");
   assert(await evaluate("document.querySelector('#product-dialog').open"), "A janela de detalhes não abriu.");
@@ -281,6 +299,14 @@ try {
       viewportWidth: document.documentElement.clientWidth,
       viewportHeight: window.innerHeight,
       contentWidth: document.documentElement.scrollWidth,
+      overflowElements: [...document.body.querySelectorAll('*')]
+        .map((element) => ({
+          selector: element.id ? '#' + element.id : element.className ? '.' + String(element.className).trim().replaceAll(' ', '.') : element.tagName,
+          rect: element.getBoundingClientRect()
+        }))
+        .filter((item) => item.rect.right > document.documentElement.clientWidth + 1 || item.rect.left < -1)
+        .slice(0, 8)
+        .map((item) => ({ selector: item.selector, left: item.rect.left, right: item.rect.right, width: item.rect.width })),
       cartButton: (() => {
         const rect = document.querySelector('.cart-fab').getBoundingClientRect();
         return { left: rect.left, right: rect.right, bottom: rect.bottom };
@@ -340,6 +366,10 @@ try {
   await evaluate("window.scrollTo(0, 0)");
   await delay(180);
   await screenshot("/tmp/mimoshelo-mobile-reviewed.png");
+
+  await evaluate("document.querySelector('#produtos').scrollIntoView({block: 'start'})");
+  await delay(180);
+  await screenshot("/tmp/mimoshelo-produtos-mobile.png");
 
   await evaluate("document.querySelector('[data-feature-carousel]').scrollIntoView({block: 'start'})");
   await delay(350);

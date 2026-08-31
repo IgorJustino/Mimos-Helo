@@ -19,6 +19,10 @@ const prepared = prepareProduct(validProduct);
 assert.equal(prepared.slug, "caderneta-personalizada");
 assert.equal(prepared.image_url, "/media/catalogo/caderneta.webp");
 assert.deepEqual(JSON.parse(prepared.options), ["Brilhante"]);
+assert.equal(
+  prepareProduct({ ...validProduct, category: "papelaria-personalizacao" }).category,
+  "papelaria-personalizacao"
+);
 
 assert.throws(
   () => prepareProduct({ ...validProduct, category: "categoria-inventada" }),

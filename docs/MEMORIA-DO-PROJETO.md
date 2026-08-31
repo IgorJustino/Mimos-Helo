@@ -54,6 +54,7 @@ public/                         frontend publicado
   admin.html                    área administrativa
   assets/css/                   estilos da vitrine e do painel
   assets/js/                    catálogo, carrinho, painel e cliente da API
+  assets/images/brand/          marcas oficiais e imagem de compartilhamento
   assets/images/guide/          imagens institucionais do guia
 functions/                      backend do Cloudflare Pages
   _shared/                      autenticação, HTTP, D1, R2 e métricas
@@ -73,8 +74,8 @@ Arquivos antigos e pastas legadas de Supabase, migrações duplicadas, imagens d
 
 1. `public/assets/js/catalog-api.js` consulta `GET /api/products`.
 2. A API lê do D1 somente produtos com `published = 1`.
-3. `public/assets/js/storefront.js` renderiza os cartões e o produto em destaque.
-4. O comprador pode filtrar por categoria, abrir detalhes ou personalizar o produto.
+3. `public/assets/js/storefront.js` renderiza os cartões, a busca e os filtros de categoria.
+4. O comprador pode buscar sem depender de acentos, filtrar, abrir detalhes ou personalizar o produto.
 5. As escolhas e os dados de personalização ficam somente no `sessionStorage` e na memória do navegador.
 6. O comprador altera quantidades e revisa a seleção no carrinho lateral.
 7. Ao clicar em enviar, o navegador monta uma mensagem e abre `wa.me` com o pedido preenchido.
@@ -84,9 +85,10 @@ Se o banco estiver corretamente acessível, mas não tiver produtos publicados, 
 ### Funcionalidades presentes
 
 - layout responsivo para desktop e smartphones;
-- hero preenchido com o primeiro produto publicado;
+- hero institucional com o monograma oficial;
 - carrossel informativo acima da seção de produtos;
-- filtros por categoria;
+- busca por produto, descrição, opções, detalhes e categoria;
+- atalhos e filtros por categoria com compatibilidade para categorias legadas;
 - detalhes do produto em modal;
 - formulário de personalização configurável por produto;
 - opções com preços e descrições diferentes;
@@ -224,14 +226,27 @@ A telemetria é opcional. Se `sendBeacon`, `fetch` ou `sessionStorage` forem blo
 
 A skill `frontend-design`, proveniente de `anthropics/skills`, está registrada em `skills-lock.json` e em `.agents/skills/frontend-design/`. Ela orientou o visual para não parecer um template genérico.
 
-Direção atual:
+Em 31/08/2026, a identidade foi atualizada a partir do **Manual Definitivo do Catálogo Digital Mimos Helo V3**, do **Catálogo Digital Mimos Helo** e das marcas oficiais fornecidas pela cliente. Esses documentos foram tratados como referência visual e de conteúdo; propostas futuras presentes neles não foram interpretadas automaticamente como requisitos de banco ou backend.
 
-- identidade delicada em rosa, uva e verde-água;
-- títulos expressivos com Caprasimo;
-- assinatura/logotipo textual com Borel;
-- corpo e interface com Nunito Sans;
-- referências visuais de encadernação, papel, wire-o e acabamento;
-- painel de métricas desenhado como processo real, não como cartões genéricos.
+Direção oficial atual:
+
+- Azul Tinta `#1B3A5C` como cor principal de marca, cabeçalhos e ações;
+- Porcelana `#F5F0EB` como base, Rosé Seco `#D4A5A5`, Lavanda `#C8B8D4` e Sálvia `#A8C0A0` como apoios;
+- Grafite `#2D2D2D` para texto;
+- títulos editoriais com Cormorant Garamond;
+- corpo, formulários e interface com Inter;
+- logotipo oficial usado como imagem — não reconstruir o nome com fonte de texto;
+- monograma oficial como assinatura do hero e marca de acesso do painel;
+- slogan principal: “Ideias que ganham forma, detalhes que encantam.”;
+- vitrine em quatro colunas no desktop, duas no smartphone e uma somente em larguras muito estreitas;
+- painel com trilho lateral Azul Tinta e área de edição clara;
+- painel de métricas desenhado como o caminho real até o WhatsApp.
+
+Arquivos de marca publicados:
+
+- `public/assets/images/brand/mimos-helo-logo.png`: logotipo horizontal oficial;
+- `public/assets/images/brand/mimos-helo-monogram.png`: monograma transparente;
+- `public/assets/images/brand/mimos-helo-social.png`: versão em fundo Porcelana para metadados sociais.
 
 O usuário forneceu PDFs e imagens do WhatsApp como referência inicial, incluindo artes de caderneta, catálogo de festas, acabamento BOPP, prazos, entrega, reforma luxo, crachá inclusivo e adicionais. As imagens institucionais aproveitadas estão organizadas em `public/assets/images/guide/`. Fotos de produtos não devem ser copiadas para essa pasta: pertencem ao R2.
 
@@ -324,6 +339,9 @@ Além dos commits, foram realizados durante a conversa:
 - instalação e uso da skill Frontend Design;
 - inclusão do carrossel informativo na parte superior, antes dos produtos;
 - adaptação completa para smartphones;
+- atualização da vitrine e do painel para a identidade oficial Azul Tinta/Porcelana;
+- inclusão do logotipo e monograma oficiais sem recriá-los em texto;
+- busca de produtos sem dependência de acentos e categorias oficiais com compatibilidade legada;
 - personalização obrigatória antes de adicionar produtos à seleção;
 - geração do pedido pelo WhatsApp;
 - conexão do repositório GitHub e trabalho na `main`;
